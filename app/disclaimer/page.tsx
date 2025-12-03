@@ -167,7 +167,8 @@ export default function DisclaimerPage() {
             <ul>
               <li><strong>Email:</strong> legal@easycontracts.com</li>
               <li><strong>Azienda:</strong> Errakui Holding Ltd</li>
-              <li><strong>Company Number:</strong> 15400169</li>
+              <li><strong>Company Number:</strong> 16427605</li>
+              <li><strong>Registered Office:</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ</li>
               <li><strong>Registered in:</strong> England and Wales</li>
             </ul>
 

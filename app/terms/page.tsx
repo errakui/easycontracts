@@ -21,7 +21,7 @@ export default function TermsPage() {
             <h2>1. Accettazione dei Termini</h2>
             <p>
               Accedendo e utilizzando <strong>easycontracts</strong> (il &quot;Servizio&quot;), gestito da{" "}
-              <strong>Errakui Holding Ltd</strong> (Company Number: 15400169), accetti di essere vincolato da questi
+              <strong>Errakui Holding Ltd</strong> (Company Number: 16427605), accetti di essere vincolato da questi
               Termini e Condizioni. Se non accetti questi termini, non utilizzare il Servizio.
             </p>
 
@@ -204,7 +204,8 @@ export default function TermsPage() {
                 <strong>Azienda:</strong> Errakui Holding Ltd
               </li>
               <li>
-                <strong>Company Number:</strong> 15400169
+                <strong>Company Number:</strong> 16427605<br />
+                <strong>Registered Office:</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ
               </li>
               <li>
                 <strong>Registered in:</strong> England and Wales

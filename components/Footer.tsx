@@ -97,7 +97,8 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center mb-4">
             <div className="text-sm text-gray-400 mb-4 md:mb-0">
               <p className="font-semibold text-white mb-1">Errakui Holding Ltd</p>
-              <p>Company Number: 15400169</p>
+              <p>Company Number: 16427605</p>
+              <p>71-75 Shelton Street, Covent Garden, London, WC2H 9JQ</p>
               <p>Registered in England and Wales</p>
               <p>© {new Date().getFullYear()} easycontracts. Tutti i diritti riservati.</p>
             </div>

@@ -61,7 +61,8 @@ export default function ContactPage() {
               <div className="card p-6 bg-white">
                 <h3 className="font-bold text-gray-900 mb-4">Errakui Holding Ltd</h3>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Company Number:</strong> 15400169</p>
+                  <p><strong>Company Number:</strong> 16427605</p>
+                  <p><strong>Registered Office:</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ</p>
                   <p><strong>Registered in:</strong> England and Wales</p>
                   <p><strong>Industry:</strong> Legal Technology (LegalTech) / SaaS</p>
                 </div>

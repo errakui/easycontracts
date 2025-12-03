@@ -215,7 +215,8 @@ export default function CookiePolicyPage() {
                 <strong>Azienda:</strong> Errakui Holding Ltd
               </li>
               <li>
-                <strong>Company Number:</strong> 15400169
+                <strong>Company Number:</strong> 16427605<br />
+                <strong>Registered Office:</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ
               </li>
             </ul>
 

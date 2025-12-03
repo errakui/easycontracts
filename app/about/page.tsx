@@ -98,7 +98,7 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-6 text-primary-50">
               <div>
                 <p className="font-semibold text-white mb-1">Company Number</p>
-                <p>15400169</p>
+                <p>16427605</p>
               </div>
               <div>
                 <p className="font-semibold text-white mb-1">Registered In</p>

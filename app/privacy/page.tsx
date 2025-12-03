@@ -20,7 +20,7 @@ export default function PrivacyPage() {
           <div className="card p-8 md:p-12 prose prose-lg max-w-none">
             <h2>1. Introduzione</h2>
             <p>
-              Errakui Holding Ltd (Company Number: 15400169), proprietaria di <strong>easycontracts</strong>, si
+              Errakui Holding Ltd (Company Number: 16427605), proprietaria di <strong>easycontracts</strong>, si
               impegna a proteggere la privacy dei propri utenti. Questa Privacy Policy descrive come raccogliamo,
               utilizziamo e proteggiamo i tuoi dati personali in conformità con il GDPR (Regolamento UE 2016/679).
             </p>
@@ -170,7 +170,8 @@ export default function PrivacyPage() {
                 <strong>Azienda:</strong> Errakui Holding Ltd
               </li>
               <li>
-                <strong>Company Number:</strong> 15400169
+                <strong>Company Number:</strong> 16427605<br />
+                <strong>Registered Office:</strong> 71-75 Shelton Street, Covent Garden, London, WC2H 9JQ
               </li>
               <li>
                 <strong>Registrata in:</strong> England and Wales
