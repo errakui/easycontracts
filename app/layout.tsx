@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "easycontracts - Contratti Intelligenti per Tutti | Errakui Holding Ltd",
   description: "Genera contratti legali professionali in 30 secondi con l'intelligenza artificiale. SaaS legale per freelancer e PMI. Semplice, veloce, affidabile.",
   keywords: "contratti, AI, intelligenza artificiale, legale, freelancer, PMI, SaaS, legal tech",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+  },
 };
 
 export default function RootLayout({
