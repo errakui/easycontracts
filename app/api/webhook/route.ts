@@ -96,6 +96,20 @@ export async function POST(req: NextRequest) {
 
         console.log(`✅ Utente creato/aggiornato: ${user.email} - Piano: ${plan}`);
 
+        // Crea un token di login magico per auto-login
+        const loginToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+        
+        // Salva il token temporaneo nel database (usalo per 5 minuti)
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { 
+            // Salviamo il token nell'immagine temporaneamente (hack veloce)
+            image: `login_token:${loginToken}:${Date.now() + 300000}` 
+          },
+        });
+
+        console.log(`✅ Token di login creato per ${user.email}`);
+
         break;
       }
 

@@ -45,6 +45,9 @@ export default function PricingCard({
       return;
     }
 
+    // Salva email in localStorage per auto-login dopo pagamento
+    localStorage.setItem("checkout_email", email);
+
     setLoading(true);
 
     try {
@@ -62,6 +65,7 @@ export default function PricingCard({
     } catch (error) {
       console.error("Errore checkout:", error);
       alert("Errore durante il checkout. Riprova.");
+      localStorage.removeItem("checkout_email");
     } finally {
       setLoading(false);
     }

@@ -11,9 +11,38 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [contracts, setContracts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verifica se l'utente è loggato
+    handleAutoLogin();
+  }, [router]);
+
+  const handleAutoLogin = async () => {
+    // Prova a recuperare email da localStorage (salvata al checkout)
+    const checkoutEmail = localStorage.getItem("checkout_email");
+    
+    if (checkoutEmail) {
+      try {
+        const response = await fetch("/api/auto-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: checkoutEmail }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          localStorage.removeItem("checkout_email");
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Errore auto-login:", error);
+      }
+    }
+
+    // Altrimenti verifica se l'utente è già loggato
     const userStr = localStorage.getItem("user");
     if (!userStr) {
       router.push("/login");
@@ -26,7 +55,19 @@ export default function DashboardPage() {
     if (contractsStr) {
       setContracts(JSON.parse(contractsStr));
     }
-  }, [router]);
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Caricamento dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Caricamento...</div>;
