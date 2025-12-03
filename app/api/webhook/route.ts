@@ -34,9 +34,14 @@ export async function POST(req: NextRequest) {
           break;
         }
 
-        // Recupera la subscription da Stripe
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const priceId = subscription.items.data[0].price.id;
+        // Recupera la subscription completa da Stripe
+        const subscriptionData: any = await stripe.subscriptions.retrieve(subscriptionId);
+        const priceId = subscriptionData.items?.data?.[0]?.price?.id;
+
+        if (!priceId) {
+          console.error("❌ Price ID non trovato nella subscription");
+          break;
+        }
 
         // Determina il piano
         let plan: "PRO" | "BUSINESS" = "PRO";
@@ -66,23 +71,26 @@ export async function POST(req: NextRequest) {
         });
 
         // Salva la subscription
+        const periodStart = new Date((subscriptionData.current_period_start || Date.now() / 1000) * 1000);
+        const periodEnd = new Date((subscriptionData.current_period_end || (Date.now() / 1000 + 2592000)) * 1000);
+
         await prisma.subscription.upsert({
           where: { stripeSubscriptionId: subscriptionId },
           update: {
             status: "ACTIVE",
             plan: plan,
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
           },
           create: {
             userId: user.id,
             stripeSubscriptionId: subscriptionId,
             stripePriceId: priceId,
-            stripeProductId: subscription.items.data[0].price.product as string,
+            stripeProductId: (subscriptionData.items?.data?.[0]?.price?.product as string) || '',
             plan: plan,
             status: "ACTIVE",
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
           },
         });
 
@@ -92,16 +100,19 @@ export async function POST(req: NextRequest) {
       }
 
       case "customer.subscription.updated": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const subscription: any = event.data.object;
         console.log("🔄 Abbonamento aggiornato:", subscription.id);
+
+        const periodStart = new Date((subscription.current_period_start || Date.now() / 1000) * 1000);
+        const periodEnd = new Date((subscription.current_period_end || (Date.now() / 1000 + 2592000)) * 1000);
 
         await prisma.subscription.update({
           where: { stripeSubscriptionId: subscription.id },
           data: {
             status: subscription.status === "active" ? "ACTIVE" : "CANCELED",
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            currentPeriodStart: periodStart,
+            currentPeriodEnd: periodEnd,
+            cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
           },
         });
 
@@ -149,7 +160,7 @@ export async function POST(req: NextRequest) {
       }
 
       case "invoice.payment_succeeded": {
-        const invoice = event.data.object as Stripe.Invoice;
+        const invoice: any = event.data.object;
         console.log("✅ Pagamento ricevuto:", invoice.id);
 
         // Reset usage mensile se è un rinnovo
