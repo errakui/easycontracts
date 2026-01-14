@@ -79,7 +79,7 @@ export default function Footer() {
                 <Linkedin className="w-4 h-4" />
               </a>
               <a 
-                href="mailto:info@easycontracts.ai" 
+                href="mailto:support@easycontracts.tech" 
                 className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white transition-colors"
               >
                 <Mail className="w-4 h-4" />
@@ -145,7 +145,16 @@ export default function Footer() {
             © {currentYear} easycontracts. Tutti i diritti riservati.
           </p>
           <p className="text-gray-600 text-sm flex items-center gap-2">
-            Made with <span className="text-red-500">♥</span> in Italy 🇮🇹
+            Sviluppato con <span className="text-red-500">❤️</span> da{" "}
+            <a 
+              href="https://www.errakui.dev" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-violet-400 hover:text-violet-300 font-medium"
+            >
+              errakui.dev
+            </a>
+            {" "}🇮🇹
           </p>
         </div>
       </div>
