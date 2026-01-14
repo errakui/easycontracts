@@ -318,31 +318,74 @@ export default function GeneratePage() {
     </span>
   );
 
-  const LockedField = ({ children, label }: { children: React.ReactNode; label: string }) => (
-    <div className="relative">
-      <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
-        {label} <ProBadge />
-      </label>
-      {isPro ? (
-        children
-      ) : (
-        <div 
-          className="relative cursor-pointer"
-          onClick={() => startCheckout("pro")}
-        >
-          <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
-            <div className="text-center">
-              <Lock className="w-5 h-5 text-amber-400 mx-auto mb-1" />
-              <span className="text-xs text-gray-400">🔓 Sblocca ora (€19/mese)</span>
+  // Helper per mostrare campo PRO - SENZA wrapper che causa re-render
+  const renderProField = (
+    label: string, 
+    field: keyof ContractData,
+    type: "text" | "email" | "date" | "number" | "select" | "textarea" = "text",
+    placeholder?: string,
+    options?: { value: string; label: string }[]
+  ) => {
+    if (!isPro) {
+      return (
+        <div className="relative">
+          <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+            {label} <ProBadge />
+          </label>
+          <div 
+            className="relative cursor-pointer"
+            onClick={() => startCheckout("pro")}
+          >
+            <div className="absolute inset-0 bg-[#030014]/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+              <div className="text-center">
+                <Lock className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+                <span className="text-xs text-gray-400">🔓 Sblocca (€19/mese)</span>
+              </div>
+            </div>
+            <div className="opacity-30 pointer-events-none">
+              <input type="text" className="input-dark" placeholder={placeholder} readOnly />
             </div>
           </div>
-          <div className="opacity-30 pointer-events-none">
-            {children}
-          </div>
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    return (
+      <div>
+        <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+          {label} <ProBadge />
+        </label>
+        {type === "select" && options ? (
+          <select
+            value={data[field] as string}
+            onChange={(e) => setData(prev => ({ ...prev, [field]: e.target.value }))}
+            className="input-dark"
+          >
+            <option value="">Seleziona...</option>
+            {options.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        ) : type === "textarea" ? (
+          <textarea
+            value={data[field] as string}
+            onChange={(e) => setData(prev => ({ ...prev, [field]: e.target.value }))}
+            rows={3}
+            className="input-dark"
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            type={type}
+            value={data[field] as string}
+            onChange={(e) => setData(prev => ({ ...prev, [field]: e.target.value }))}
+            className="input-dark"
+            placeholder={placeholder}
+          />
+        )}
+      </div>
+    );
+  };
 
   const stepLabels = ["Tipo", "Parti", "Dettagli", "Clausole"];
   const steps: Step[] = ["type", "parties", "details", "clauses"];
@@ -516,40 +559,16 @@ export default function GeneratePage() {
                   </div>
 
                   {/* Indirizzo - PRO */}
-                  <LockedField label="Indirizzo">
-                    <input
-                      type="text"
-                      value={data.party1Address}
-                      onChange={(e) => setData({ ...data, party1Address: e.target.value })}
-                      className="input-dark"
-                      placeholder="Via Roma 1"
-                    />
-                  </LockedField>
+                  {renderProField("Indirizzo", "party1Address", "text", "Via Roma 1")}
 
                   {/* Città - PRO */}
                   <div className="mt-4">
-                    <LockedField label="Città">
-                      <input
-                        type="text"
-                        value={data.party1City}
-                        onChange={(e) => setData({ ...data, party1City: e.target.value })}
-                        className="input-dark"
-                        placeholder="Milano"
-                      />
-                    </LockedField>
+                    {renderProField("Città", "party1City", "text", "Milano")}
                   </div>
 
                   {/* Email - PRO */}
                   <div className="mt-4">
-                    <LockedField label="Email">
-                      <input
-                        type="email"
-                        value={data.party1Email}
-                        onChange={(e) => setData({ ...data, party1Email: e.target.value })}
-                        className="input-dark"
-                        placeholder="mario@email.com"
-                      />
-                    </LockedField>
+                    {renderProField("Email", "party1Email", "email", "mario@email.com")}
                   </div>
                 </div>
 
@@ -612,38 +631,14 @@ export default function GeneratePage() {
                   </div>
 
                   {/* Indirizzo - PRO */}
-                  <LockedField label="Indirizzo">
-                    <input
-                      type="text"
-                      value={data.party2Address}
-                      onChange={(e) => setData({ ...data, party2Address: e.target.value })}
-                      className="input-dark"
-                      placeholder="Via Milano 10"
-                    />
-                  </LockedField>
+                  {renderProField("Indirizzo", "party2Address", "text", "Via Milano 10")}
 
                   <div className="mt-4">
-                    <LockedField label="Città">
-                      <input
-                        type="text"
-                        value={data.party2City}
-                        onChange={(e) => setData({ ...data, party2City: e.target.value })}
-                        className="input-dark"
-                        placeholder="Roma"
-                      />
-                    </LockedField>
+                    {renderProField("Città", "party2City", "text", "Roma")}
                   </div>
 
                   <div className="mt-4">
-                    <LockedField label="Email">
-                      <input
-                        type="email"
-                        value={data.party2Email}
-                        onChange={(e) => setData({ ...data, party2Email: e.target.value })}
-                        className="input-dark"
-                        placeholder="giulia@email.com"
-                      />
-                    </LockedField>
+                    {renderProField("Email", "party2Email", "email", "giulia@email.com")}
                   </div>
                 </div>
               </div>
@@ -701,49 +696,28 @@ export default function GeneratePage() {
                         />
                       </div>
                     </div>
-                    <LockedField label="Metodo di pagamento">
-                      <select
-                        value={data.paymentMethod}
-                        onChange={(e) => setData({ ...data, paymentMethod: e.target.value })}
-                        className="input-dark"
-                      >
-                        <option value="">Seleziona...</option>
-                        <option value="bonifico">Bonifico Bancario</option>
-                        <option value="contanti">Contanti</option>
-                        <option value="assegno">Assegno</option>
-                        <option value="paypal">PayPal</option>
-                      </select>
-                    </LockedField>
+                    {renderProField("Metodo di pagamento", "paymentMethod", "select", undefined, [
+                      { value: "bonifico", label: "Bonifico Bancario" },
+                      { value: "contanti", label: "Contanti" },
+                      { value: "assegno", label: "Assegno" },
+                      { value: "paypal", label: "PayPal" },
+                    ])}
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4 mt-4">
-                    <LockedField label="Termini di pagamento">
-                      <select
-                        value={data.paymentTerms}
-                        onChange={(e) => setData({ ...data, paymentTerms: e.target.value })}
-                        className="input-dark"
-                      >
-                        <option value="">Seleziona...</option>
-                        <option value="anticipato">100% Anticipato</option>
-                        <option value="50-50">50% anticipo + 50% saldo</option>
-                        <option value="30-70">30% anticipo + 70% saldo</option>
-                        <option value="posticipato">100% a completamento</option>
-                        <option value="rate">Rate mensili</option>
-                      </select>
-                    </LockedField>
-                    <LockedField label="Scadenza pagamento">
-                      <select
-                        value={data.paymentSchedule}
-                        onChange={(e) => setData({ ...data, paymentSchedule: e.target.value })}
-                        className="input-dark"
-                      >
-                        <option value="">Seleziona...</option>
-                        <option value="immediato">Immediato</option>
-                        <option value="15gg">Entro 15 giorni</option>
-                        <option value="30gg">Entro 30 giorni</option>
-                        <option value="60gg">Entro 60 giorni</option>
-                      </select>
-                    </LockedField>
+                    {renderProField("Termini di pagamento", "paymentTerms", "select", undefined, [
+                      { value: "anticipato", label: "100% Anticipato" },
+                      { value: "50-50", label: "50% anticipo + 50% saldo" },
+                      { value: "30-70", label: "30% anticipo + 70% saldo" },
+                      { value: "posticipato", label: "100% a completamento" },
+                      { value: "rate", label: "Rate mensili" },
+                    ])}
+                    {renderProField("Scadenza pagamento", "paymentSchedule", "select", undefined, [
+                      { value: "immediato", label: "Immediato" },
+                      { value: "15gg", label: "Entro 15 giorni" },
+                      { value: "30gg", label: "Entro 30 giorni" },
+                      { value: "60gg", label: "Entro 60 giorni" },
+                    ])}
                   </div>
                 </div>
 
@@ -760,50 +734,20 @@ export default function GeneratePage() {
                         className="input-dark"
                       />
                     </div>
-                    <LockedField label="Data fine">
-                      <input
-                        type="date"
-                        value={data.endDate}
-                        onChange={(e) => setData({ ...data, endDate: e.target.value })}
-                        className="input-dark"
-                      />
-                    </LockedField>
+                    {renderProField("Data fine", "endDate", "date")}
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4 mt-4">
-                    <LockedField label="Rinnovo automatico">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => isPro && setData({ ...data, autoRenewal: true })}
-                          className={`flex-1 py-3 rounded-xl text-sm font-medium ${
-                            data.autoRenewal ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
-                          }`}
-                        >
-                          Sì
-                        </button>
-                        <button
-                          onClick={() => isPro && setData({ ...data, autoRenewal: false })}
-                          className={`flex-1 py-3 rounded-xl text-sm font-medium ${
-                            !data.autoRenewal ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
-                          }`}
-                        >
-                          No
-                        </button>
-                      </div>
-                    </LockedField>
-                    <LockedField label="Preavviso disdetta">
-                      <select
-                        value={data.noticePeriod}
-                        onChange={(e) => setData({ ...data, noticePeriod: e.target.value })}
-                        className="input-dark"
-                      >
-                        <option value="">Seleziona...</option>
-                        <option value="15">15 giorni</option>
-                        <option value="30">30 giorni</option>
-                        <option value="60">60 giorni</option>
-                        <option value="90">90 giorni</option>
-                      </select>
-                    </LockedField>
+                    {renderProField("Rinnovo automatico", "autoRenewal", "select", undefined, [
+                      { value: "true", label: "Sì" },
+                      { value: "false", label: "No" },
+                    ])}
+                    {renderProField("Preavviso disdetta", "noticePeriod", "select", undefined, [
+                      { value: "15", label: "15 giorni" },
+                      { value: "30", label: "30 giorni" },
+                      { value: "60", label: "60 giorni" },
+                      { value: "90", label: "90 giorni" },
+                    ])}
                   </div>
                 </div>
 
@@ -812,25 +756,9 @@ export default function GeneratePage() {
                   <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     Deliverables e Milestone <ProBadge />
                   </h3>
-                  <LockedField label="Cosa verrà consegnato">
-                    <textarea
-                      value={data.deliverables}
-                      onChange={(e) => setData({ ...data, deliverables: e.target.value })}
-                      rows={3}
-                      className="input-dark"
-                      placeholder="Elenca i deliverables: es. sito web, logo, report..."
-                    />
-                  </LockedField>
+                  {renderProField("Cosa verrà consegnato", "deliverables", "textarea", "Elenca i deliverables: es. sito web, logo, report...")}
                   <div className="mt-4">
-                    <LockedField label="Milestone e scadenze">
-                      <textarea
-                        value={data.milestones}
-                        onChange={(e) => setData({ ...data, milestones: e.target.value })}
-                        rows={3}
-                        className="input-dark"
-                        placeholder="Definisci le tappe: es. 15/02 - Bozza, 01/03 - Revisione..."
-                      />
-                    </LockedField>
+                    {renderProField("Milestone e scadenze", "milestones", "textarea", "Definisci le tappe: es. 15/02 - Bozza, 01/03 - Revisione...")}
                   </div>
                 </div>
               </div>
@@ -906,15 +834,7 @@ export default function GeneratePage() {
 
               {/* Custom - PRO */}
               <div className="mt-6 p-6 rounded-3xl bg-white/5 border border-white/10">
-                <LockedField label="Richieste personalizzate">
-                  <textarea
-                    value={data.customRequests}
-                    onChange={(e) => setData({ ...data, customRequests: e.target.value })}
-                    rows={3}
-                    className="input-dark"
-                    placeholder="Clausole o richieste particolari che vuoi includere..."
-                  />
-                </LockedField>
+                {renderProField("Richieste personalizzate", "customRequests", "textarea", "Clausole o richieste particolari che vuoi includere...")}
               </div>
 
               {/* Legal - PRO */}
@@ -923,24 +843,8 @@ export default function GeneratePage() {
                   Clausole Legali <ProBadge />
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <LockedField label="Foro competente">
-                    <input
-                      type="text"
-                      value={data.jurisdictionCity}
-                      onChange={(e) => setData({ ...data, jurisdictionCity: e.target.value })}
-                      className="input-dark"
-                      placeholder="Milano"
-                    />
-                  </LockedField>
-                  <LockedField label="Penale inadempimento (€)">
-                    <input
-                      type="number"
-                      value={data.penaltyAmount}
-                      onChange={(e) => setData({ ...data, penaltyAmount: e.target.value })}
-                      className="input-dark"
-                      placeholder="500"
-                    />
-                  </LockedField>
+                  {renderProField("Foro competente", "jurisdictionCity", "text", "Milano")}
+                  {renderProField("Penale inadempimento (€)", "penaltyAmount", "number", "500")}
                 </div>
               </div>
 
