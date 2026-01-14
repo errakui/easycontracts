@@ -145,27 +145,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Salva subscription nel database
   if (subscriptionId && stripe) {
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const subResponse = await stripe.subscriptions.retrieve(subscriptionId);
+    const sub = subResponse as Stripe.Subscription;
     
     await prisma.subscription.upsert({
       where: { stripeSubscriptionId: subscriptionId },
       update: {
         plan,
         status: "ACTIVE",
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodStart: new Date(sub.current_period_start * 1000),
+        currentPeriodEnd: new Date(sub.current_period_end * 1000),
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
       },
       create: {
         userId: user.id,
         stripeSubscriptionId: subscriptionId,
-        stripePriceId: subscription.items.data[0]?.price.id || "",
-        stripeProductId: subscription.items.data[0]?.price.product as string || "",
+        stripePriceId: sub.items.data[0]?.price.id || "",
+        stripeProductId: sub.items.data[0]?.price.product as string || "",
         plan,
         status: "ACTIVE",
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        currentPeriodStart: new Date(sub.current_period_start * 1000),
+        currentPeriodEnd: new Date(sub.current_period_end * 1000),
+        cancelAtPeriodEnd: sub.cancel_at_period_end,
       },
     });
   }
