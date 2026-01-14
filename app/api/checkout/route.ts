@@ -37,11 +37,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Crea la sessione di checkout
+    // Success URL: completa registrazione con email
+    const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/complete-registration?email=${encodeURIComponent(email)}&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/#prezzi`;
+    
     const session = await createCheckoutSession(
       priceId,
       customerId,
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/#prezzi`,
+      successUrl,
+      cancelUrl,
       email
     );
 

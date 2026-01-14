@@ -32,7 +32,7 @@ import { downloadContractPDF } from "@/lib/pdf-generator";
 import { startCheckout } from "@/lib/checkout";
 import Link from "next/link";
 
-type Step = "type" | "parties" | "details" | "clauses" | "generate" | "preview";
+type Step = "type" | "parties" | "details" | "clauses" | "generate" | "preview" | "revision";
 
 interface ContractData {
   type: string;
@@ -127,6 +127,9 @@ export default function GeneratePage() {
   const [generating, setGenerating] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isPro, setIsPro] = useState(false);
+  const [revisionPrompt, setRevisionPrompt] = useState("");
+  const [revisionUsed, setRevisionUsed] = useState(false);
+  const [revising, setRevising] = useState(false);
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -225,6 +228,60 @@ export default function GeneratePage() {
       setStep("clauses");
     } finally {
       setGenerating(false);
+    }
+  };
+
+  // Funzione per pulire markdown
+  const cleanMarkdown = (text: string): string => {
+    return text
+      .replace(/^#{1,6}\s+/gm, '') // Rimuove # headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Rimuove **bold**
+      .replace(/\*(.*?)\*/g, '$1') // Rimuove *italic*
+      .replace(/`(.*?)`/g, '$1') // Rimuove `code`
+      .replace(/---+/g, '═'.repeat(50)) // Sostituisce --- con linea
+      .replace(/^\s*[-*]\s+/gm, '• ') // Bullet points
+      .trim();
+  };
+
+  // Funzione per revisione
+  const handleRevision = async () => {
+    if (!revisionPrompt.trim()) return;
+    
+    // Se già usata e non PRO, mostra messaggio
+    if (revisionUsed && !isPro) {
+      const confirm = window.confirm(
+        "Hai già usato la revisione gratuita. Vuoi passare a PRO per revisioni illimitate?"
+      );
+      if (confirm) {
+        startCheckout("pro");
+      }
+      return;
+    }
+
+    setRevising(true);
+    try {
+      const response = await fetch("/api/revise-contract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalContract: generatedContract,
+          revisionRequest: revisionPrompt,
+          contractType: selectedContract?.name || data.type,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Errore nella revisione");
+
+      const result = await response.json();
+      setGeneratedContract(result.contract);
+      setRevisionUsed(true);
+      setRevisionPrompt("");
+      setStep("preview");
+    } catch (error) {
+      console.error(error);
+      alert("Errore nella revisione. Riprova.");
+    } finally {
+      setRevising(false);
     }
   };
 
@@ -934,32 +991,104 @@ export default function GeneratePage() {
                   <Check className="w-4 h-4" /> Contratto Generato
                 </div>
                 <h1 className="text-3xl font-black text-white">Ecco il Tuo Contratto</h1>
+                {!isPro && (
+                  <p className="text-amber-400 text-sm mt-2">⚠️ Il PDF avrà un watermark</p>
+                )}
               </div>
 
+              {/* Azioni principali */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <button onClick={handleDownload} className="btn-primary flex-1 py-4 text-lg">
+                  <Download className="w-5 h-5 mr-2" /> Scarica PDF
+                </button>
+                <button 
+                  onClick={() => setStep("revision")} 
+                  className="btn-outline flex-1 py-4 text-lg"
+                  disabled={revisionUsed && !isPro}
+                >
+                  <Sparkles className="w-5 h-5 mr-2" /> 
+                  {revisionUsed && !isPro ? "Revisione usata" : "Revisione"}
+                  {!revisionUsed && <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">1 gratis</span>}
+                </button>
+              </div>
+
+              {/* Preview contratto */}
               <div className="p-6 rounded-3xl bg-white/5 border border-white/10 mb-6">
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-violet-400" />
-                    <div>
-                      <h3 className="font-bold text-white">{selectedContract?.name}</h3>
-                      <p className="text-sm text-gray-500">{new Date().toLocaleDateString("it-IT")}</p>
-                    </div>
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
+                  <FileText className="w-6 h-6 text-violet-400" />
+                  <div>
+                    <h3 className="font-bold text-white">{selectedContract?.name}</h3>
+                    <p className="text-sm text-gray-500">{new Date().toLocaleDateString("it-IT")} • {data.party1Name} ↔ {data.party2Name}</p>
                   </div>
-                  <button onClick={handleDownload} className="btn-primary">
-                    <Download className="w-4 h-4 mr-2" /> Scarica
-                  </button>
                 </div>
-                <pre className="p-4 rounded-2xl bg-black/50 text-gray-300 text-sm overflow-auto max-h-[500px] whitespace-pre-wrap font-mono">
-                  {generatedContract}
-                </pre>
+                <div className="p-6 rounded-2xl bg-white text-gray-900 text-sm overflow-auto max-h-[600px] whitespace-pre-wrap leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
+                  {cleanMarkdown(generatedContract)}
+                </div>
               </div>
 
               <div className="flex justify-center gap-4">
                 <Link href="/dashboard" className="btn-outline">
                   Vai alla Dashboard
                 </Link>
-                <button onClick={() => { setData(initialData); setStep("type"); }} className="btn-secondary">
+                <button onClick={() => { setData(initialData); setGeneratedContract(""); setRevisionUsed(false); setStep("type"); }} className="btn-secondary">
                   Nuovo Contratto
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* REVISION */}
+          {step === "revision" && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-10">
+                <h1 className="text-3xl font-black text-white mb-2">Revisiona il Contratto</h1>
+                <p className="text-gray-400">
+                  Descrivi cosa vuoi modificare e l'AI correggerà il contratto
+                </p>
+                {!isPro && !revisionUsed && (
+                  <p className="text-green-400 text-sm mt-2">✨ Hai 1 revisione gratuita</p>
+                )}
+              </div>
+
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 mb-6">
+                <label className="block text-sm text-gray-400 mb-3">
+                  Cosa vuoi modificare?
+                </label>
+                <textarea
+                  value={revisionPrompt}
+                  onChange={(e) => setRevisionPrompt(e.target.value)}
+                  rows={4}
+                  className="input-dark"
+                  placeholder="Es: Aggiungi una clausola sulla proprietà intellettuale, cambia la penale a €1000, specifica che il pagamento è in 3 rate..."
+                />
+              </div>
+
+              {/* Preview mini */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 max-h-[200px] overflow-auto">
+                <p className="text-xs text-gray-500 mb-2">Contratto attuale:</p>
+                <p className="text-sm text-gray-400 whitespace-pre-wrap">
+                  {cleanMarkdown(generatedContract).substring(0, 500)}...
+                </p>
+              </div>
+
+              <div className="flex gap-4">
+                <button onClick={() => setStep("preview")} className="btn-outline flex-1">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Annulla
+                </button>
+                <button 
+                  onClick={handleRevision} 
+                  disabled={!revisionPrompt.trim() || revising}
+                  className="btn-primary flex-1 disabled:opacity-50"
+                >
+                  {revising ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Revisionando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" /> Applica Revisione
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -38,8 +38,14 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-white">7. Modifiche</h2>
             <p>Possiamo modificare questi termini in qualsiasi momento. Le modifiche saranno comunicate via email.</p>
             
-            <h2 className="text-xl font-bold text-white">8. Contatti</h2>
-            <p>Per domande: legal@easycontracts.ai</p>
+            <h2 className="text-xl font-bold text-white">8. Limitazione Responsabilità</h2>
+            <p>easycontracts utilizza intelligenza artificiale per generare contratti. Non forniamo consulenza legale e non garantiamo che i contratti siano adatti a ogni situazione specifica. L&apos;utente è responsabile della verifica e dell&apos;eventuale revisione da parte di un professionista.</p>
+            
+            <h2 className="text-xl font-bold text-white">9. Rimborsi</h2>
+            <p>Data la natura digitale del servizio, non sono previsti rimborsi dopo l&apos;attivazione dell&apos;abbonamento. Puoi cancellare il rinnovo automatico in qualsiasi momento.</p>
+            
+            <h2 className="text-xl font-bold text-white">10. Contatti</h2>
+            <p>Per domande: support@easycontracts.tech</p>
           </div>
         </div>
       </div>

@@ -33,8 +33,14 @@ export default function PrivacyPage() {
               <h2 className="text-xl font-bold text-white">5. Cookie</h2>
               <p>Utilizziamo cookie tecnici necessari al funzionamento del servizio. Vedi la nostra Cookie Policy per maggiori dettagli.</p>
               
-              <h2 className="text-xl font-bold text-white">6. Contatti</h2>
-              <p>Per qualsiasi domanda sulla privacy: privacy@easycontracts.ai</p>
+              <h2 className="text-xl font-bold text-white">6. Diritti dell&apos;Utente</h2>
+              <p>Hai diritto di accedere, rettificare e cancellare i tuoi dati. Puoi esercitare questi diritti contattandoci o dalla dashboard del tuo account.</p>
+              
+              <h2 className="text-xl font-bold text-white">7. Conservazione Dati</h2>
+              <p>I dati vengono conservati per la durata dell&apos;account più 5 anni per adempimenti fiscali. I contratti possono essere cancellati su richiesta.</p>
+              
+              <h2 className="text-xl font-bold text-white">8. Contatti</h2>
+              <p>Per qualsiasi domanda sulla privacy: support@easycontracts.tech</p>
             </div>
           </div>
         </div>

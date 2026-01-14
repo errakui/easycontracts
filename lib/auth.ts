@@ -18,6 +18,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       name: "Email",
@@ -48,22 +55,67 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          plan: user.plan,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
+    async signIn({ user, account, profile }) {
+      // Per Google login, crea/aggiorna utente nel DB
+      if (account?.provider === "google" && user.email) {
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (!existingUser) {
+            // Crea nuovo utente FREE
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || user.email.split("@")[0],
+                image: user.image,
+                plan: "FREE",
+                contractsLimit: 1,
+                contractsUsed: 0,
+              },
+            });
+          }
+        } catch (error) {
+          console.error("Errore signIn Google:", error);
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         token.id = user.id;
         token.email = user.email;
       }
+      
+      // Carica dati utente freschi dal DB
+      if (token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: token.email as string },
+        });
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.plan = dbUser.plan;
+          token.contractsUsed = dbUser.contractsUsed;
+          token.contractsLimit = dbUser.contractsLimit;
+        }
+      }
+      
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
+        (session.user as any).plan = token.plan;
+        (session.user as any).contractsUsed = token.contractsUsed;
+        (session.user as any).contractsLimit = token.contractsLimit;
       }
       return session;
     },
