@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Check, Loader2, Crown, Eye, EyeOff, User, Lock } from "lucide-react";
 
-export default function CompleteRegistrationPage() {
+function CompleteRegistrationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -226,6 +226,24 @@ export default function CompleteRegistrationPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// Loading fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-[#030014] flex items-center justify-center">
+      <Loader2 className="w-10 h-10 text-violet-400 animate-spin" />
+    </div>
+  );
+}
+
+// Main export with Suspense
+export default function CompleteRegistrationPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CompleteRegistrationContent />
+    </Suspense>
   );
 }
 
