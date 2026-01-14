@@ -312,23 +312,29 @@ export default function HomePage() {
                   </div>
 
             {/* Stats - Clienti */}
-            <div className="md:col-span-2 relative group rounded-3xl bg-white/5 border border-white/10 p-6 overflow-hidden">
-              <div className="grid grid-cols-4 gap-4 h-full items-center">
+            <div className="md:col-span-2 relative group rounded-3xl bg-white/5 border border-white/10 p-4 md:p-6 overflow-hidden">
+              <div className="grid grid-cols-4 gap-2 md:gap-4 h-full items-center">
                 <div className="text-center">
-                  <p className="text-3xl font-black text-violet-400">1.200+</p>
-                  <p className="text-gray-500 text-xs">Clienti attivi</p>
+                  <p className="text-lg md:text-3xl font-black text-violet-400">
+                    <span className="hidden md:inline">1.200+</span>
+                    <span className="md:hidden">+1.2k</span>
+                  </p>
+                  <p className="text-gray-500 text-[10px] md:text-xs">Clienti</p>
                 </div>
                 <div className="text-center border-l border-white/10">
-                  <p className="text-3xl font-black text-cyan-400">8.500+</p>
-                  <p className="text-gray-500 text-xs">Contratti generati</p>
-                  </div>
-                <div className="text-center border-l border-white/10">
-                  <p className="text-3xl font-black text-emerald-400">500+</p>
-                  <p className="text-gray-500 text-xs">Template AI</p>
+                  <p className="text-lg md:text-3xl font-black text-cyan-400">
+                    <span className="hidden md:inline">8.500+</span>
+                    <span className="md:hidden">+8.5k</span>
+                  </p>
+                  <p className="text-gray-500 text-[10px] md:text-xs">Contratti</p>
                 </div>
                 <div className="text-center border-l border-white/10">
-                  <p className="text-3xl font-black text-amber-400">24/7</p>
-                  <p className="text-gray-500 text-xs">Disponibile</p>
+                  <p className="text-lg md:text-3xl font-black text-emerald-400">500+</p>
+                  <p className="text-gray-500 text-[10px] md:text-xs">Template</p>
+                </div>
+                <div className="text-center border-l border-white/10">
+                  <p className="text-lg md:text-3xl font-black text-amber-400">24/7</p>
+                  <p className="text-gray-500 text-[10px] md:text-xs">Online</p>
                 </div>
               </div>
             </div>
