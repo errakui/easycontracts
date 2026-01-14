@@ -1,5 +1,41 @@
 import { jsPDF } from "jspdf";
 
+// Funzione per pulire markdown dal testo
+function cleanMarkdown(text: string): string {
+  return text
+    // Rimuove headers markdown (# ## ### ecc)
+    .replace(/^#{1,6}\s+/gm, '')
+    // Rimuove **bold**
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    // Rimuove *italic*
+    .replace(/\*(.*?)\*/g, '$1')
+    // Rimuove __bold__
+    .replace(/__(.*?)__/g, '$1')
+    // Rimuove _italic_
+    .replace(/_(.*?)_/g, '$1')
+    // Rimuove `code`
+    .replace(/`(.*?)`/g, '$1')
+    // Rimuove ```code blocks```
+    .replace(/```[\s\S]*?```/g, '')
+    // Rimuove ~~strikethrough~~
+    .replace(/~~(.*?)~~/g, '$1')
+    // Rimuove [link](url) -> link
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Rimuove bullet points markdown (- * +) ma mantiene il testo
+    .replace(/^[\s]*[-*+]\s+/gm, '• ')
+    // Rimuove numeri markdown (1. 2. ecc)
+    .replace(/^[\s]*\d+\.\s+/gm, '')
+    // Rimuove > blockquotes
+    .replace(/^>\s+/gm, '')
+    // Rimuove --- o *** (linee orizzontali)
+    .replace(/^[-*_]{3,}$/gm, '═'.repeat(50))
+    // Rimuove spazi multipli
+    .replace(/  +/g, ' ')
+    // Rimuove righe vuote multiple
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 interface ContractData {
   typeName: string;
   party1Name: string;
@@ -186,8 +222,9 @@ export function generateContractPDF(data: ContractData): jsPDF {
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
 
-  // Splitta il contenuto generato in linee
-  const contentLines = data.generatedContent.split("\n");
+  // Pulisci markdown e splitta il contenuto generato in linee
+  const cleanedContent = cleanMarkdown(data.generatedContent);
+  const contentLines = cleanedContent.split("\n");
   
   for (const line of contentLines) {
     checkNewPage(8);
