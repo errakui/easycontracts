@@ -8,10 +8,7 @@ if (!stripeSecretKey) {
 }
 
 export const stripe = stripeSecretKey 
-  ? new Stripe(stripeSecretKey, {
-      apiVersion: "2024-12-18.acacia" as any,
-      typescript: true,
-    })
+  ? new Stripe(stripeSecretKey)
   : null as unknown as Stripe;
 
 // IDs dei prodotti Stripe
