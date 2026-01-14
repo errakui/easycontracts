@@ -28,6 +28,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { contractTypes, contractCategories, commonClauses } from "@/lib/contracts";
+import { downloadContractPDF } from "@/lib/pdf-generator";
+import { startCheckout } from "@/lib/checkout";
 import Link from "next/link";
 
 type Step = "type" | "parties" | "details" | "clauses" | "generate" | "preview";
@@ -227,13 +229,30 @@ export default function GeneratePage() {
   };
 
   const handleDownload = () => {
-    const element = document.createElement("a");
-    const file = new Blob([generatedContract], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `contratto-${data.type}-${Date.now()}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    const contractTypeName = selectedContract?.name || data.type;
+    downloadContractPDF({
+      typeName: contractTypeName,
+      party1Name: data.party1Name,
+      party1Email: data.party1Email,
+      party1Vat: data.party1Vat,
+      party1Address: `${data.party1Address}, ${data.party1City}`,
+      party2Name: data.party2Name,
+      party2Email: data.party2Email,
+      party2Vat: data.party2Vat,
+      party2Address: `${data.party2Address}, ${data.party2City}`,
+      amount: data.amount,
+      paymentTerms: data.paymentTerms,
+      paymentMethod: data.paymentMethod,
+      duration: data.duration ? `${data.duration} ${data.durationType}` : undefined,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      description: data.description,
+      deliverables: data.deliverables,
+      selectedClauses: data.selectedClauses,
+      customRequests: data.customRequests,
+      generatedContent: generatedContract,
+      hasWatermark: !isPro,
+    }, `contratto-${data.type}-${Date.now()}`);
   };
 
   const ProBadge = () => (
@@ -252,12 +271,12 @@ export default function GeneratePage() {
       ) : (
         <div 
           className="relative cursor-pointer"
-          onClick={() => router.push("/#prezzi")}
+          onClick={() => startCheckout("pro")}
         >
           <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
             <div className="text-center">
               <Lock className="w-5 h-5 text-amber-400 mx-auto mb-1" />
-              <span className="text-xs text-gray-400">Sblocca con PRO</span>
+              <span className="text-xs text-gray-400">🔓 Sblocca ora (€19/mese)</span>
             </div>
           </div>
           <div className="opacity-30 pointer-events-none">
@@ -338,7 +357,7 @@ export default function GeneratePage() {
                               key={contract.id}
                               onClick={() => {
                                 if (needsPro && !isPro) {
-                                  router.push("/#prezzi");
+                                  startCheckout("pro");
                                   return;
                                 }
                                 setData({ ...data, type: contract.id });
@@ -793,7 +812,7 @@ export default function GeneratePage() {
                       onClick={() => {
                         if (clause.required) return;
                         if (needsPro) {
-                          router.push("/#prezzi");
+                          startCheckout("pro");
                           return;
                         }
                         setData({
@@ -884,7 +903,7 @@ export default function GeneratePage() {
                     <div>
                       <p className="text-white font-medium">Piano Free</p>
                       <p className="text-sm text-gray-400">
-                        Il contratto avrà un watermark. <Link href="/#prezzi" className="text-amber-400 hover:underline">Passa a PRO</Link> per rimuoverlo e sbloccare tutte le opzioni.
+                        Il contratto avrà un watermark. <button onClick={() => startCheckout("pro")} className="text-amber-400 hover:underline font-medium">Passa a PRO (€19/mese)</button> per rimuoverlo e sbloccare tutte le opzioni.
                       </p>
                     </div>
                   </div>

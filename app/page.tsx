@@ -491,44 +491,28 @@ export default function HomePage() {
           <div className="space-y-4">
             {[
               {
-                q: "Come funziona la generazione dei contratti?", 
-                a: "È semplice: 1) Scegli il tipo di contratto tra i 500+ template disponibili. 2) Compili un form guidato con i dati delle parti, oggetto, compenso e clausole. 3) L'AI elabora i dati e genera un contratto personalizzato. 4) Scarichi il PDF pronto per la firma. Tutto in circa 30 secondi." 
+                q: "Come funziona?", 
+                a: "Scegli un tipo di contratto, compili il form con i dati (parti, oggetto, compenso), l'AI genera il documento, lo scarichi." 
               },
               {
-                q: "I contratti generati sono legalmente validi?",
-                a: "I contratti seguono la struttura e il linguaggio legale italiano, con riferimenti alle normative 2026 vigenti. Tuttavia, easycontracts è un servizio di generazione AI, non uno studio legale. Per contratti di alto valore o situazioni particolarmente complesse, consigliamo di far revisionare il documento da un professionista." 
+                q: "I contratti sono validi?",
+                a: "I contratti usano struttura e linguaggio legale italiano. NON siamo uno studio legale. Per situazioni importanti, fai revisionare da un avvocato." 
               },
               {
-                q: "Posso modificare il contratto dopo la generazione?",
-                a: "Assolutamente sì. Il contratto generato è un documento di testo che puoi modificare liberamente. Puoi aggiungere clausole, cambiare termini, o adattarlo alle tue esigenze specifiche prima di stamparlo e firmarlo." 
+                q: "Posso modificare il contratto?",
+                a: "Sì. Scarichi un file di testo che puoi modificare come vuoi prima di stamparlo." 
               },
               {
-                q: "Quanto tempo ci vuole per generare un contratto?", 
-                a: "In media 30 secondi dal completamento del form al PDF pronto. Il tempo può variare leggermente in base alla complessità del contratto e al carico dei server." 
+                q: "Quanto costa?", 
+                a: "Free: 1 contratto con watermark. Pro €19/mese: 10 contratti senza watermark. Business €49/mese: contratti illimitati." 
               },
               {
-                q: "Quali tipi di contratti posso generare?", 
-                a: "Abbiamo 500+ template che coprono: contratti freelance, NDA, contratti di lavoro, affitto, compravendita, partnership, consulenza, servizi, sviluppo software, social media management, e molti altri. Ogni categoria ha template specifici per diverse situazioni." 
+                q: "Posso cancellare l'abbonamento?", 
+                a: "Sì, quando vuoi dalle impostazioni. Nessun vincolo." 
               },
               {
-                q: "Come funziona l'abbonamento?", 
-                a: "Offriamo 3 piani: Free (1 contratto gratis con watermark), Pro (€19/mese per 10 contratti senza watermark), Business (€49/mese per contratti illimitati). Puoi cancellare in qualsiasi momento dalle impostazioni, senza vincoli." 
-              },
-              {
-                q: "Che tecnologia AI utilizzate?", 
-                a: "Utilizziamo Perplexity AI con il modello Llama 3.1, addestrato specificamente per la generazione di documenti legali italiani. L'AI ha accesso al nostro database di 500+ template e alle normative italiane aggiornate al 2026." 
-              },
-              {
-                q: "I miei dati sono al sicuro?", 
-                a: "Sì. I dati inseriti nei form vengono utilizzati solo per generare il contratto e non vengono condivisi con terze parti. Utilizziamo connessioni crittografate HTTPS e seguiamo le normative GDPR per la protezione dei dati." 
-              },
-              {
-                q: "Posso usare easycontracts per la mia azienda?", 
-                a: "Sì. Il piano Business (€49/mese) ti dà contratti illimitati, perfetto se la tua azienda genera molti documenti. Per esigenze particolari contattaci." 
-              },
-              {
-                q: "Cosa succede se ho un problema con un contratto?", 
-                a: "Il nostro supporto è disponibile via email per tutti i piani a pagamento. Per il piano Business offriamo supporto prioritario. Ricorda che forniamo un servizio di generazione documenti, non consulenza legale." 
+                q: "Come contatto il supporto?", 
+                a: "Email: info@easycontracts.ai" 
               },
             ].map((faq, index) => (
               <div 

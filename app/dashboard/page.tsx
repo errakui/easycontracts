@@ -11,14 +11,31 @@ import {
   ChevronRight, Loader2, ArrowUpRight, X,
   CreditCard, AlertCircle, Check
 } from "lucide-react";
+import { downloadContractPDF } from "@/lib/pdf-generator";
+import { startCheckout } from "@/lib/checkout";
 
 interface Contract {
   id: string;
   type: string;
   typeName: string;
   party1Name: string;
+  party1Email?: string;
+  party1Vat?: string;
+  party1Address?: string;
   party2Name: string;
+  party2Email?: string;
+  party2Vat?: string;
+  party2Address?: string;
   amount: string;
+  paymentTerms?: string;
+  paymentMethod?: string;
+  duration?: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string;
+  deliverables?: string;
+  selectedClauses?: string[];
+  customRequests?: string;
   status: string;
   hasWatermark: boolean;
   createdAt: string;
@@ -50,6 +67,14 @@ export default function DashboardPage() {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!user?.email) return;
+    setCheckingOut(true);
+    await startCheckout("pro", user.email);
+    setCheckingOut(false);
+  };
 
   useEffect(() => {
     loadData();
@@ -142,16 +167,29 @@ export default function DashboardPage() {
   };
 
   const downloadContract = (contract: Contract) => {
-    const content = contract.generatedContent || selectedContract?.generatedContent || "Contratto non disponibile";
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${contract.typeName || contract.type}-${contract.id}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadContractPDF({
+      typeName: contract.typeName || contract.type,
+      party1Name: contract.party1Name,
+      party1Email: contract.party1Email,
+      party1Vat: contract.party1Vat,
+      party1Address: contract.party1Address,
+      party2Name: contract.party2Name,
+      party2Email: contract.party2Email,
+      party2Vat: contract.party2Vat,
+      party2Address: contract.party2Address,
+      amount: contract.amount,
+      paymentTerms: contract.paymentTerms,
+      paymentMethod: contract.paymentMethod,
+      duration: contract.duration,
+      startDate: contract.startDate,
+      endDate: contract.endDate,
+      description: contract.description || "",
+      deliverables: contract.deliverables,
+      selectedClauses: contract.selectedClauses || [],
+      customRequests: contract.customRequests,
+      generatedContent: contract.generatedContent || "",
+      hasWatermark: contract.hasWatermark,
+    }, `${contract.typeName || contract.type}-${contract.id}`);
   };
 
   const deleteContract = async (id: string) => {
@@ -260,9 +298,13 @@ export default function DashboardPage() {
               </div>
               <p className="text-2xl font-bold text-white mb-2">{user.plan}</p>
               {!isPro && (
-                <Link href="/#prezzi" className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1">
-                  Passa a Pro <ChevronRight className="w-4 h-4" />
-                </Link>
+                <button 
+                  onClick={handleUpgrade}
+                  disabled={checkingOut}
+                  className="text-sm text-violet-400 hover:text-violet-300 flex items-center gap-1"
+                >
+                  {checkingOut ? "Caricamento..." : "Passa a Pro"} <ChevronRight className="w-4 h-4" />
+                </button>
               )}
             </div>
 
@@ -313,12 +355,13 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                <Link
-                  href="/#prezzi"
-                  className="px-6 py-3 bg-amber-500 text-black font-semibold rounded-2xl hover:bg-amber-400 transition-all whitespace-nowrap"
+                <button
+                  onClick={handleUpgrade}
+                  disabled={checkingOut}
+                  className="px-6 py-3 bg-amber-500 text-black font-semibold rounded-2xl hover:bg-amber-400 transition-all whitespace-nowrap disabled:opacity-50"
                 >
-                  Passa a Pro
-                </Link>
+                  {checkingOut ? "Caricamento..." : "Passa a Pro"}
+                </button>
               </div>
             </div>
           )}
@@ -446,13 +489,14 @@ export default function DashboardPage() {
               <p className="text-gray-400 mb-8 max-w-xl mx-auto">
                 Con Pro hai 10 contratti/mese, tutti i template e nessun watermark.
               </p>
-              <Link
-                href="/#prezzi"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-semibold rounded-2xl hover:bg-gray-100 transition-all"
+              <button
+                onClick={handleUpgrade}
+                disabled={checkingOut}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-semibold rounded-2xl hover:bg-gray-100 transition-all disabled:opacity-50"
               >
-                Passa a Pro
+                {checkingOut ? "Caricamento..." : "Passa a Pro"}
                 <ArrowUpRight className="w-5 h-5" />
-              </Link>
+              </button>
             </div>
           )}
         </div>
