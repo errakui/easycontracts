@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import PricingCard from "@/components/PricingCard";
 import {
   Sparkles,
   Zap,
@@ -412,68 +413,30 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Free */}
-            <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-white/30 transition-all">
-              <h3 className="text-2xl font-bold mb-2">Free</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-5xl font-black">€0</span>
-                <span className="text-gray-500">/sempre</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                {["1 contratto gratis", "4 template base", "Watermark"].map((f, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-300">
-                    <CheckCircle className="w-5 h-5 text-gray-500" />
-                    {f}
-                </li>
-                ))}
-              </ul>
-              <Link href="/generate" className="block w-full py-4 rounded-2xl border border-white/20 text-center font-semibold hover:bg-white/5 transition-all">
-                Inizia Gratis
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="relative p-8 rounded-3xl bg-gradient-to-b from-violet-600/20 to-violet-600/5 border-2 border-violet-500/50 hover:border-violet-400 transition-all scale-105">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 rounded-full text-sm font-bold">
-                Consigliato
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Pro</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-5xl font-black">€19</span>
-                <span className="text-gray-500">/mese</span>
-              </div>
-              <ul className="space-y-4 mb-8">
-                {["10 contratti/mese", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto email"].map((f, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-violet-400" />
-                    {f}
-                </li>
-                ))}
-              </ul>
-              <Link href="/generate" className="block w-full py-4 rounded-2xl bg-violet-500 text-center font-bold hover:bg-violet-400 transition-all">
-                Scegli Pro
-              </Link>
-            </div>
-
-            {/* Business */}
-            <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-white/30 transition-all">
-              <h3 className="text-2xl font-bold mb-2">Business</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-5xl font-black">€49</span>
-                <span className="text-gray-500">/mese</span>
-            </div>
-              <ul className="space-y-4 mb-8">
-                {["Contratti illimitati", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto email"].map((f, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-300">
-                    <CheckCircle className="w-5 h-5 text-gray-500" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/generate" className="block w-full py-4 rounded-2xl border border-white/20 text-center font-semibold hover:bg-white/5 transition-all">
-                Scegli Business
-              </Link>
-            </div>
+            <PricingCard
+              plan="free"
+              name="Free"
+              price={0}
+              period="/sempre"
+              features={["1 contratto gratis", "3 template base", "Watermark"]}
+            />
+            <PricingCard
+              plan="pro"
+              name="Pro"
+              price={19}
+              period="/mese"
+              features={["10 contratti/mese", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto email"]}
+              popular={true}
+              priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO}
+            />
+            <PricingCard
+              plan="business"
+              name="Business"
+              price={49}
+              period="/mese"
+              features={["Contratti illimitati", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto prioritario"]}
+              priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS}
+            />
           </div>
         </div>
       </section>
