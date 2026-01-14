@@ -164,6 +164,7 @@ export default function GeneratePage() {
     setGenerating(true);
 
     try {
+      // 1. Genera il contratto con AI
       const response = await fetch("/api/generate-contract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,18 +178,44 @@ export default function GeneratePage() {
       if (!response.ok) throw new Error("Errore nella generazione");
 
       const result = await response.json();
-      setGeneratedContract(result.contract);
+      const generatedContent = result.contract;
+      setGeneratedContract(generatedContent);
       
+      // 2. Salva nel database
+      try {
+        await fetch("/api/contracts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            contractData: {
+              ...data,
+              typeName: selectedContract?.name || "Contratto",
+            },
+            generatedContent,
+            isPro,
+          }),
+        });
+      } catch (dbError) {
+        console.error("Errore salvataggio DB:", dbError);
+      }
+
+      // 3. Salva anche in localStorage come backup
       const contracts = JSON.parse(localStorage.getItem("contracts") || "[]");
       contracts.push({
-        id: Date.now(),
-        type: selectedContract?.name || "Contratto",
-        content: result.contract,
-        date: new Date().toISOString(),
-        plan: isPro ? "pro" : "free",
-        data,
+        id: Date.now().toString(),
+        type: data.type,
+        typeName: selectedContract?.name || "Contratto",
+        party1Name: data.party1Name,
+        party2Name: data.party2Name,
+        amount: data.amount,
+        status: "DRAFT",
+        hasWatermark: !isPro,
+        createdAt: new Date().toISOString(),
+        generatedContent,
       });
       localStorage.setItem("contracts", JSON.stringify(contracts));
+      
       setStep("preview");
     } catch (error) {
       console.error(error);

@@ -44,10 +44,15 @@ export default function AdminPage() {
 
   const checkAdminAccess = async () => {
     const userStr = localStorage.getItem("user");
-    if (!userStr) { router.push("/login"); return; }
+    if (!userStr) { router.push("/login"); return false; }
     const user = JSON.parse(userStr);
-    const adminEmails = ["admin@easycontracts.ai", process.env.NEXT_PUBLIC_ADMIN_EMAIL];
-    if (!adminEmails.includes(user.email)) { router.push("/dashboard"); return; }
+    const adminEmails = ["admin@easycontracts.ai", "errakui@gmail.com", process.env.NEXT_PUBLIC_ADMIN_EMAIL];
+    if (!adminEmails.includes(user.email)) { 
+      alert("Accesso non autorizzato");
+      router.push("/dashboard"); 
+      return false; 
+    }
+    return true;
   };
 
   const loadData = async () => {
