@@ -9,27 +9,32 @@ export async function DELETE(
     const userId = params.id;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "ID utente richiesto" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "User ID richiesto" }, { status: 400 });
     }
 
-    // Elimina l'utente (cascade eliminerà anche contratti e subscription)
+    // Elimina prima i contratti dell'utente
+    await prisma.contract.deleteMany({
+      where: { userId },
+    });
+
+    // Elimina le subscriptions
+    await prisma.subscription.deleteMany({
+      where: { userId },
+    });
+
+    // Elimina l'utente
     await prisma.user.delete({
       where: { id: userId },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Utente eliminato con successo",
+    return NextResponse.json({ 
+      success: true, 
+      message: "Utente eliminato con successo" 
     });
+
   } catch (error: any) {
     console.error("Errore eliminazione utente:", error);
-    return NextResponse.json(
-      { error: error.message || "Errore nell'eliminazione dell'utente" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
@@ -43,28 +48,19 @@ export async function GET(
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        contracts: {
-          orderBy: { createdAt: "desc" },
-          take: 10,
-        },
-        subscription: true,
+        contracts: true,
+        subscriptions: true,
       },
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "Utente non trovato" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Utente non trovato" }, { status: 404 });
     }
 
     return NextResponse.json({ user });
+
   } catch (error: any) {
-    console.error("Errore get user:", error);
-    return NextResponse.json(
-      { error: error.message || "Errore nel recupero utente" },
-      { status: 500 }
-    );
+    console.error("Errore recupero utente:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
