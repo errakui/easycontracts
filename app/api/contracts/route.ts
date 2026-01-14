@@ -5,13 +5,27 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     const userId = req.headers.get("x-user-id");
+    const userEmail = req.headers.get("x-user-email");
     
-    if (!userId) {
+    if (!userId && !userEmail) {
       return NextResponse.json({ error: "Non autenticato" }, { status: 401 });
     }
 
+    // Trova utente per ID o email
+    let user = null;
+    if (userId) {
+      user = await prisma.user.findUnique({ where: { id: userId } });
+    }
+    if (!user && userEmail) {
+      user = await prisma.user.findUnique({ where: { email: userEmail } });
+    }
+    
+    if (!user) {
+      return NextResponse.json({ error: "Utente non trovato" }, { status: 404 });
+    }
+
     const contracts = await prisma.contract.findMany({
-      where: { userId },
+      where: { userId: user.id },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,

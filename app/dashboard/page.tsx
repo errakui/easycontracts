@@ -115,9 +115,12 @@ export default function DashboardPage() {
         });
       }
 
-      // Recupera contratti
+      // Recupera contratti (usa anche email per sicurezza)
       const contractsRes = await fetch("/api/contracts", {
-        headers: { "x-user-id": localUser.id },
+        headers: { 
+          "x-user-id": localUser.id || "",
+          "x-user-email": localUser.email || "",
+        },
       });
       
       if (contractsRes.ok) {
