@@ -140,6 +140,11 @@ export default function GeneratePage() {
     }
   }, []);
 
+  // Scroll to top quando cambia step
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
+
   const selectedContract = contractTypes.find((c) => c.id === data.type);
 
   const handleNext = () => {
