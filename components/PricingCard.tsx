@@ -1,8 +1,7 @@
 "use client";
 
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, X, Mail, CreditCard } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
 
 interface PricingCardProps {
   plan: "free" | "pro" | "business";
@@ -24,6 +23,9 @@ export default function PricingCard({
   priceId,
 }: PricingCardProps) {
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
 
   const handleCheckout = async () => {
     if (plan === "free") {
@@ -32,18 +34,23 @@ export default function PricingCard({
     }
 
     if (!priceId) {
-      alert("Stripe non configurato. Controlla le variabili d'ambiente.");
+      alert("Stripe non configurato");
       return;
     }
 
-    const email = prompt("Inserisci la tua email:");
+    // Mostra modal per email
+    setShowModal(true);
+  };
+
+  const processPayment = async () => {
     if (!email || !email.includes("@")) {
-      alert("Email non valida!");
+      setError("Inserisci un'email valida");
       return;
     }
 
-    localStorage.setItem("checkout_email", email);
+    setError("");
     setLoading(true);
+    localStorage.setItem("checkout_email", email);
 
     try {
       const response = await fetch("/api/checkout", {
@@ -58,9 +65,9 @@ export default function PricingCard({
       } else {
         throw new Error(data.error || "Errore checkout");
       }
-    } catch (error: any) {
-      console.error(error);
-      alert(error.message);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Errore. Riprova.");
       localStorage.removeItem("checkout_email");
     } finally {
       setLoading(false);
@@ -68,43 +75,95 @@ export default function PricingCard({
   };
 
   return (
-    <div className={`relative p-8 rounded-3xl ${
-      popular 
-        ? "bg-gradient-to-b from-violet-600/20 to-violet-600/5 border-2 border-violet-500/50 scale-105" 
-        : "bg-white/5 border border-white/10"
-    }`}>
-      {popular && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 rounded-full text-sm font-bold text-white">
-          Più Popolare
-        </div>
-      )}
+    <>
+      <div className={`relative p-8 rounded-3xl ${
+        popular 
+          ? "bg-gradient-to-b from-violet-600/20 to-violet-600/5 border-2 border-violet-500/50 scale-105" 
+          : "bg-white/5 border border-white/10"
+      }`}>
+        {popular && (
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 rounded-full text-sm font-bold text-white">
+            Più Popolare
+          </div>
+        )}
 
-      <h3 className="text-2xl font-bold text-white mb-2">{name}</h3>
-      <div className="flex items-baseline gap-1 mb-6">
-        <span className="text-5xl font-black text-white">€{price}</span>
-        <span className="text-gray-500">{period}</span>
+        <h3 className="text-2xl font-bold text-white mb-2">{name}</h3>
+        <div className="flex items-baseline gap-1 mb-6">
+          <span className="text-5xl font-black text-white">€{price}</span>
+          <span className="text-gray-500">{period}</span>
+        </div>
+
+        <ul className="space-y-4 mb-8">
+          {features.map((feature, index) => (
+            <li key={index} className="flex items-center gap-3">
+              <CheckCircle className={`w-5 h-5 ${popular ? "text-violet-400" : "text-gray-500"}`} />
+              <span className={popular ? "text-white" : "text-gray-400"}>{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <button
+          onClick={handleCheckout}
+          disabled={loading}
+          className={`w-full py-4 rounded-2xl font-semibold transition-all ${
+            popular 
+              ? "bg-violet-500 text-white hover:bg-violet-400" 
+              : "border border-white/20 text-white hover:bg-white/5"
+          } ${loading ? "opacity-50 cursor-wait" : ""}`}
+        >
+          {loading ? "Caricamento..." : plan === "free" ? "Inizia Gratis" : `Scegli ${name}`}
+        </button>
       </div>
 
-      <ul className="space-y-4 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center gap-3">
-            <CheckCircle className={`w-5 h-5 ${popular ? "text-violet-400" : "text-gray-500"}`} />
-            <span className={popular ? "text-white" : "text-gray-400"}>{feature}</span>
-          </li>
-        ))}
-      </ul>
+      {/* Modal Pagamento */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0a0a1a] border border-white/10 rounded-3xl p-8 max-w-md w-full">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-6 h-6 text-violet-500" />
+                <h3 className="text-xl font-bold text-white">Paga e Inizia</h3>
+              </div>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-white">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-      <button
-        onClick={handleCheckout}
-        disabled={loading}
-        className={`w-full py-4 rounded-2xl font-semibold transition-all ${
-          popular 
-            ? "bg-violet-500 text-white hover:bg-violet-400" 
-            : "border border-white/20 text-white hover:bg-white/5"
-        } ${loading ? "opacity-50 cursor-wait" : ""}`}
-      >
-        {loading ? "Caricamento..." : plan === "free" ? "Inizia Gratis" : `Scegli ${name}`}
-      </button>
-    </div>
+            <div className="mb-6 p-4 rounded-2xl bg-violet-500/10 border border-violet-500/30">
+              <p className="text-violet-400 font-semibold">{name}</p>
+              <p className="text-3xl font-black text-white">€{price}<span className="text-lg text-gray-500">/mese</span></p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm text-gray-400 mb-2">La tua email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:border-violet-500 focus:outline-none"
+                  onKeyDown={(e) => e.key === "Enter" && processPayment()}
+                />
+              </div>
+              {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            </div>
+
+            <button
+              onClick={processPayment}
+              disabled={loading}
+              className="w-full py-4 bg-violet-500 text-white font-semibold rounded-2xl hover:bg-violet-400 transition-all disabled:opacity-50"
+            >
+              {loading ? "Reindirizzamento..." : "Procedi al Pagamento →"}
+            </button>
+
+            <p className="text-center text-xs text-gray-500 mt-4">
+              Dopo il pagamento il tuo account sarà attivo automaticamente
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
