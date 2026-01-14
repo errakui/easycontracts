@@ -12,6 +12,20 @@ import {
   Download,
   Check,
   Lock,
+  Loader2,
+  Crown,
+  Users,
+  Euro,
+  Calendar,
+  Clock,
+  MapPin,
+  Mail,
+  Phone,
+  Building,
+  User,
+  Briefcase,
+  Shield,
+  AlertCircle,
 } from "lucide-react";
 import { contractTypes, contractCategories, commonClauses } from "@/lib/contracts";
 import Link from "next/link";
@@ -20,80 +34,111 @@ type Step = "type" | "parties" | "details" | "clauses" | "generate" | "preview";
 
 interface ContractData {
   type: string;
+  // Parti - BASE
   party1Name: string;
-  party1Email: string;
+  party1Type: "persona" | "azienda";
   party1Vat: string;
   party1Address: string;
+  party1City: string;
+  party1Email: string;
+  party1Phone: string;
   party2Name: string;
-  party2Email: string;
+  party2Type: "persona" | "azienda";
   party2Vat: string;
   party2Address: string;
+  party2City: string;
+  party2Email: string;
+  party2Phone: string;
+  // Dettagli - BASE
+  description: string;
   amount: string;
-  paymentTerms: string;
+  currency: string;
+  // Dettagli - PRO
   paymentMethod: string;
+  paymentTerms: string;
+  paymentSchedule: string;
   duration: string;
+  durationType: string;
   startDate: string;
   endDate: string;
-  description: string;
-  deliverables: string;
+  autoRenewal: boolean;
+  noticePeriod: string;
   workLocation: string;
   workHours: string;
+  deliverables: string;
+  milestones: string;
+  // Clausole
   selectedClauses: string[];
   customRequests: string;
+  // Extra PRO
+  penaltyAmount: string;
+  jurisdictionCity: string;
+  arbitration: boolean;
+  governingLaw: string;
 }
+
+const initialData: ContractData = {
+  type: "",
+  party1Name: "",
+  party1Type: "persona",
+  party1Vat: "",
+  party1Address: "",
+  party1City: "",
+  party1Email: "",
+  party1Phone: "",
+  party2Name: "",
+  party2Type: "persona",
+  party2Vat: "",
+  party2Address: "",
+  party2City: "",
+  party2Email: "",
+  party2Phone: "",
+  description: "",
+  amount: "",
+  currency: "EUR",
+  paymentMethod: "",
+  paymentTerms: "",
+  paymentSchedule: "",
+  duration: "",
+  durationType: "mesi",
+  startDate: "",
+  endDate: "",
+  autoRenewal: false,
+  noticePeriod: "",
+  workLocation: "",
+  workHours: "",
+  deliverables: "",
+  milestones: "",
+  selectedClauses: [],
+  customRequests: "",
+  penaltyAmount: "",
+  jurisdictionCity: "",
+  arbitration: false,
+  governingLaw: "italiana",
+};
 
 export default function GeneratePage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("type");
-  const [data, setData] = useState<ContractData>({
-    type: "",
-    party1Name: "",
-    party1Email: "",
-    party1Vat: "",
-    party1Address: "",
-    party2Name: "",
-    party2Email: "",
-    party2Vat: "",
-    party2Address: "",
-    amount: "",
-    paymentTerms: "",
-    paymentMethod: "",
-    duration: "",
-    startDate: "",
-    endDate: "",
-    description: "",
-    deliverables: "",
-    workLocation: "",
-    workHours: "",
-    selectedClauses: [],
-    customRequests: "",
-  });
+  const [data, setData] = useState<ContractData>(initialData);
   const [generatedContract, setGeneratedContract] = useState<string>("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
-    // Verifica se l'utente è loggato
     const userStr = localStorage.getItem("user");
     if (userStr) {
-      setUser(JSON.parse(userStr));
-    }
-
-    // Recupera dati salvati se presenti
-    const savedData = localStorage.getItem("pendingContract");
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setData(parsed.data);
-      setStep(parsed.step);
-      localStorage.removeItem("pendingContract");
+      const userData = JSON.parse(userStr);
+      setUser(userData);
+      setIsPro(userData.plan === "PRO" || userData.plan === "BUSINESS");
     }
   }, []);
 
   const selectedContract = contractTypes.find((c) => c.id === data.type);
 
   const handleNext = () => {
-    const steps: Step[] = ["type", "parties", "details", "clauses", "generate"];
+    const steps: Step[] = ["type", "parties", "details", "clauses"];
     const currentIndex = steps.indexOf(step);
     if (currentIndex < steps.length - 1) {
       setStep(steps[currentIndex + 1]);
@@ -101,7 +146,7 @@ export default function GeneratePage() {
   };
 
   const handleBack = () => {
-    const steps: Step[] = ["type", "parties", "details", "clauses", "generate"];
+    const steps: Step[] = ["type", "parties", "details", "clauses"];
     const currentIndex = steps.indexOf(step);
     if (currentIndex > 0) {
       setStep(steps[currentIndex - 1]);
@@ -109,39 +154,49 @@ export default function GeneratePage() {
   };
 
   const handleGenerate = async () => {
-    // IMPORTANTE: Verifica login prima di generare
     if (!user) {
-      // Salva lo stato corrente
-      localStorage.setItem("pendingContract", JSON.stringify({ data, step: "generate" }));
-      // Redirect al login
-      router.push("/login");
+      localStorage.setItem("pendingContract", JSON.stringify({ data, step: "clauses" }));
+      router.push("/login?from=/generate");
       return;
     }
 
-    setIsGenerating(true);
     setStep("generate");
+    setGenerating(true);
 
-    // Simula generazione AI (in produzione: chiamata API OpenAI/Claude)
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    try {
+      const response = await fetch("/api/generate-contract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          typeName: selectedContract?.name || "Contratto",
+          isPro,
+        }),
+      });
 
-    const contract = generateContractText(data, selectedContract?.name || "");
-    setGeneratedContract(contract);
-    
-    // Salva il contratto nel localStorage
-    const contracts = JSON.parse(localStorage.getItem("contracts") || "[]");
-    const newContract = {
-      id: Date.now(),
-      type: selectedContract?.name || "Contratto",
-      content: contract,
-      date: new Date().toISOString(),
-      plan: "free", // Piano Free ha watermark
-      data: data,
-    };
-    contracts.push(newContract);
-    localStorage.setItem("contracts", JSON.stringify(contracts));
+      if (!response.ok) throw new Error("Errore nella generazione");
 
-    setIsGenerating(false);
-    setStep("preview");
+      const result = await response.json();
+      setGeneratedContract(result.contract);
+      
+      const contracts = JSON.parse(localStorage.getItem("contracts") || "[]");
+      contracts.push({
+        id: Date.now(),
+        type: selectedContract?.name || "Contratto",
+        content: result.contract,
+        date: new Date().toISOString(),
+        plan: isPro ? "pro" : "free",
+        data,
+      });
+      localStorage.setItem("contracts", JSON.stringify(contracts));
+      setStep("preview");
+    } catch (error) {
+      console.error(error);
+      alert("Errore nella generazione. Riprova.");
+      setStep("clauses");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const handleDownload = () => {
@@ -154,124 +209,131 @@ export default function GeneratePage() {
     document.body.removeChild(element);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+  const ProBadge = () => (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-xs font-medium">
+      <Crown className="w-3 h-3" /> PRO
+    </span>
+  );
 
-      <div className="pt-24 pb-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-          {/* Progress Bar */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-4">
-              {["Tipo", "Parti", "Dettagli", "Clausole", "Genera"].map((label, index) => {
-                const steps: Step[] = ["type", "parties", "details", "clauses", "generate"];
-                const currentIndex = steps.indexOf(step);
-                const isActive = index === currentIndex;
-                const isCompleted = index < currentIndex;
-
-                return (
-                  <div key={label} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center flex-1">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                          isCompleted
-                            ? "bg-primary-500 text-white"
-                            : isActive
-                            ? "bg-primary-600 text-white ring-4 ring-primary-200"
-                            : "bg-gray-300 text-gray-600"
-                        }`}
-                      >
-                        {isCompleted ? <Check className="w-5 h-5" /> : index + 1}
-                      </div>
-                      <span
-                        className={`text-xs mt-2 font-medium ${
-                          isActive ? "text-primary-600" : "text-gray-500"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                    </div>
-                    {index < 4 && (
-                      <div
-                        className={`h-1 flex-1 -mt-6 ${
-                          isCompleted ? "bg-primary-500" : "bg-gray-300"
-                        }`}
-                      ></div>
-                    )}
-                  </div>
-                );
-              })}
+  const LockedField = ({ children, label }: { children: React.ReactNode; label: string }) => (
+    <div className="relative">
+      <label className="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+        {label} <ProBadge />
+      </label>
+      {isPro ? (
+        children
+      ) : (
+        <div 
+          className="relative cursor-pointer"
+          onClick={() => router.push("/#prezzi")}
+        >
+          <div className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+            <div className="text-center">
+              <Lock className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+              <span className="text-xs text-gray-400">Sblocca con PRO</span>
             </div>
           </div>
+          <div className="opacity-30 pointer-events-none">
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
-          {/* Step: Tipo di Contratto */}
+  const stepLabels = ["Tipo", "Parti", "Dettagli", "Clausole"];
+  const steps: Step[] = ["type", "parties", "details", "clauses"];
+  const currentIndex = steps.indexOf(step);
+
+  return (
+    <div className="min-h-screen bg-[#030014]">
+      <Navbar />
+
+      <div className="pt-28 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+
+          {/* Progress */}
+          {step !== "preview" && step !== "generate" && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between max-w-md mx-auto">
+                {stepLabels.map((label, index) => {
+                  const isActive = index === currentIndex;
+                  const isCompleted = index < currentIndex;
+                  return (
+                    <div key={label} className="flex items-center">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm transition-all ${
+                          isCompleted ? "bg-green-500 text-white" :
+                          isActive ? "bg-violet-500 text-white" :
+                          "bg-white/5 text-gray-500"
+                        }`}>
+                          {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
+                        </div>
+                        <span className={`text-xs mt-2 ${isActive ? "text-white" : "text-gray-500"}`}>
+                          {label}
+                        </span>
+                      </div>
+                      {index < 3 && (
+                        <div className={`w-12 h-0.5 mx-2 -mt-4 ${isCompleted ? "bg-green-500" : "bg-white/10"}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 1: TIPO */}
           {step === "type" && (
             <div className="animate-fade-in">
               <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Che Tipo di Contratto Ti Serve?</h1>
-                <p className="text-xl text-gray-600">Scegli dalla nostra libreria di 30+ template professionali</p>
+                <h1 className="text-4xl font-black text-white mb-3">
+                  Che Contratto Ti Serve?
+                </h1>
+                <p className="text-gray-400">500+ template • L'AI genera il resto</p>
               </div>
 
               <div className="space-y-8">
                 {contractCategories.map((category) => {
                   const contracts = contractTypes.filter((c) => c.category === category.id);
                   if (contracts.length === 0) return null;
-
                   return (
                     <div key={category.id}>
-                      <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                        <span className="text-3xl mr-3">{category.icon}</span>
+                      <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <span className="text-xl">{category.icon}</span>
                         {category.name}
                       </h2>
-                      <div className="grid md:grid-cols-2 gap-4">
+                      <div className="grid sm:grid-cols-2 gap-3">
                         {contracts.map((contract) => {
-                          const isLocked = !contract.free;
+                          const needsPro = !contract.free;
                           return (
-                            <div key={contract.id} className="relative">
-                              <button
-                                onClick={() => {
-                                  if (isLocked && !user) {
-                                    router.push("/login");
-                                    return;
-                                  }
-                                  if (isLocked) {
-                                    alert("Questo contratto richiede il piano PRO. Passa a Pro per sbloccarlo!");
-                                    return;
-                                  }
-                                  setData({ ...data, type: contract.id });
-                                  handleNext();
-                                }}
-                                className={`card text-left hover:shadow-xl transition-all p-6 w-full relative ${
-                                  data.type === contract.id ? "ring-4 ring-primary-500" : ""
-                                } ${isLocked ? "opacity-75" : "hover:scale-105"}`}
-                                disabled={isLocked && !user}
-                              >
-                                {isLocked && (
-                                  <div className="absolute top-4 right-4 z-10">
-                                    <Lock className="w-6 h-6 text-yellow-600" />
-                                  </div>
-                                )}
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="text-3xl mb-3">{contract.icon}</div>
-                                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            <button
+                              key={contract.id}
+                              onClick={() => {
+                                if (needsPro && !isPro) {
+                                  router.push("/#prezzi");
+                                  return;
+                                }
+                                setData({ ...data, type: contract.id });
+                                handleNext();
+                              }}
+                              className={`p-4 rounded-2xl bg-white/5 border border-white/10 text-left transition-all hover:bg-white/10 hover:border-white/20 ${
+                                needsPro && !isPro ? "opacity-60" : ""
+                              }`}
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-2xl">{contract.icon}</span>
+                                  <div>
+                                    <h3 className="font-semibold text-white flex items-center gap-2">
                                       {contract.name}
-                                      {isLocked && (
-                                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                                          PRO
-                                        </span>
-                                      )}
+                                      {needsPro && <ProBadge />}
                                     </h3>
-                                    <p className="text-gray-600 text-sm">{contract.description}</p>
+                                    <p className="text-sm text-gray-500">{contract.description}</p>
                                   </div>
-                                  {contract.popular && !isLocked && (
-                                    <span className="bg-primary-100 text-primary-700 text-xs px-3 py-1 rounded-full font-semibold">
-                                      Popolare
-                                    </span>
-                                  )}
                                 </div>
-                              </button>
-                            </div>
+                              </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -282,514 +344,577 @@ export default function GeneratePage() {
             </div>
           )}
 
-          {/* Step: Parti Contraenti */}
+          {/* STEP 2: PARTI */}
           {step === "parties" && (
             <div className="animate-fade-in">
-              <div className="text-center mb-12">
-                <div className="text-5xl mb-4">{selectedContract?.icon}</div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Chi Sono le Parti del Contratto?</h1>
-                <p className="text-xl text-gray-600">Inserisci i dati di chi firma il contratto</p>
+              <div className="text-center mb-10">
+                <span className="text-4xl mb-4 block">{selectedContract?.icon}</span>
+                <h1 className="text-3xl font-black text-white mb-2">Chi Firma il Contratto?</h1>
+                <p className="text-gray-400">Inserisci i dati delle parti coinvolte</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Parte 1 */}
-                <div className="card p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Prima Parte (Tu / Tua Azienda)</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nome / Ragione Sociale *
-                      </label>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* PARTE 1 */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <User className="w-5 h-5 text-violet-400" />
+                    Parte 1 (Tu / Committente)
+                  </h3>
+                  
+                  {/* Tipo - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">Tipo</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setData({ ...data, party1Type: "persona" })}
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                          data.party1Type === "persona" ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
+                        }`}
+                      >
+                        Persona Fisica
+                      </button>
+                      <button
+                        onClick={() => setData({ ...data, party1Type: "azienda" })}
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                          data.party1Type === "azienda" ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
+                        }`}
+                      >
+                        Azienda
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nome - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">
+                      {data.party1Type === "azienda" ? "Ragione Sociale *" : "Nome e Cognome *"}
+                    </label>
+                    <input
+                      type="text"
+                      value={data.party1Name}
+                      onChange={(e) => setData({ ...data, party1Name: e.target.value })}
+                      className="input-dark"
+                      placeholder={data.party1Type === "azienda" ? "Acme S.r.l." : "Mario Rossi"}
+                    />
+                  </div>
+
+                  {/* P.IVA / CF - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">
+                      {data.party1Type === "azienda" ? "P.IVA *" : "Codice Fiscale *"}
+                    </label>
+                    <input
+                      type="text"
+                      value={data.party1Vat}
+                      onChange={(e) => setData({ ...data, party1Vat: e.target.value })}
+                      className="input-dark"
+                      placeholder={data.party1Type === "azienda" ? "IT12345678901" : "RSSMRA80A01H501Z"}
+                    />
+                  </div>
+
+                  {/* Indirizzo - PRO */}
+                  <LockedField label="Indirizzo">
+                    <input
+                      type="text"
+                      value={data.party1Address}
+                      onChange={(e) => setData({ ...data, party1Address: e.target.value })}
+                      className="input-dark"
+                      placeholder="Via Roma 1"
+                    />
+                  </LockedField>
+
+                  {/* Città - PRO */}
+                  <div className="mt-4">
+                    <LockedField label="Città">
                       <input
                         type="text"
-                        value={data.party1Name}
-                        onChange={(e) => setData({ ...data, party1Name: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Es: Mario Rossi / Acme S.r.l."
+                        value={data.party1City}
+                        onChange={(e) => setData({ ...data, party1City: e.target.value })}
+                        className="input-dark"
+                        placeholder="Milano"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    </LockedField>
+                  </div>
+
+                  {/* Email - PRO */}
+                  <div className="mt-4">
+                    <LockedField label="Email">
                       <input
                         type="email"
                         value={data.party1Email}
                         onChange={(e) => setData({ ...data, party1Email: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="mario.rossi@email.com"
+                        className="input-dark"
+                        placeholder="mario@email.com"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        P.IVA / Codice Fiscale
-                      </label>
-                      <input
-                        type="text"
-                        value={data.party1Vat}
-                        onChange={(e) => setData({ ...data, party1Vat: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="12345678901"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Indirizzo Completo
-                      </label>
-                      <input
-                        type="text"
-                        value={data.party1Address}
-                        onChange={(e) => setData({ ...data, party1Address: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Via Roma 123, 20100 Milano (MI)"
-                      />
-                    </div>
+                    </LockedField>
                   </div>
                 </div>
 
-                {/* Parte 2 */}
-                <div className="card p-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-6">Seconda Parte (Controparte)</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Nome / Ragione Sociale *
-                      </label>
+                {/* PARTE 2 */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                    <Users className="w-5 h-5 text-cyan-400" />
+                    Parte 2 (Controparte)
+                  </h3>
+                  
+                  {/* Tipo - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">Tipo</label>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setData({ ...data, party2Type: "persona" })}
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                          data.party2Type === "persona" ? "bg-cyan-500 text-white" : "bg-white/5 text-gray-400"
+                        }`}
+                      >
+                        Persona Fisica
+                      </button>
+                      <button
+                        onClick={() => setData({ ...data, party2Type: "azienda" })}
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                          data.party2Type === "azienda" ? "bg-cyan-500 text-white" : "bg-white/5 text-gray-400"
+                        }`}
+                      >
+                        Azienda
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Nome - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">
+                      {data.party2Type === "azienda" ? "Ragione Sociale *" : "Nome e Cognome *"}
+                    </label>
+                    <input
+                      type="text"
+                      value={data.party2Name}
+                      onChange={(e) => setData({ ...data, party2Name: e.target.value })}
+                      className="input-dark"
+                      placeholder={data.party2Type === "azienda" ? "Cliente S.p.A." : "Giulia Bianchi"}
+                    />
+                  </div>
+
+                  {/* P.IVA / CF - FREE */}
+                  <div className="mb-4">
+                    <label className="block text-sm text-gray-400 mb-2">
+                      {data.party2Type === "azienda" ? "P.IVA *" : "Codice Fiscale *"}
+                    </label>
+                    <input
+                      type="text"
+                      value={data.party2Vat}
+                      onChange={(e) => setData({ ...data, party2Vat: e.target.value })}
+                      className="input-dark"
+                      placeholder={data.party2Type === "azienda" ? "IT98765432101" : "BNCGLI85B45F205W"}
+                    />
+                  </div>
+
+                  {/* Indirizzo - PRO */}
+                  <LockedField label="Indirizzo">
+                    <input
+                      type="text"
+                      value={data.party2Address}
+                      onChange={(e) => setData({ ...data, party2Address: e.target.value })}
+                      className="input-dark"
+                      placeholder="Via Milano 10"
+                    />
+                  </LockedField>
+
+                  <div className="mt-4">
+                    <LockedField label="Città">
                       <input
                         type="text"
-                        value={data.party2Name}
-                        onChange={(e) => setData({ ...data, party2Name: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Es: Laura Bianchi / Tech Corp S.p.A."
+                        value={data.party2City}
+                        onChange={(e) => setData({ ...data, party2City: e.target.value })}
+                        className="input-dark"
+                        placeholder="Roma"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    </LockedField>
+                  </div>
+
+                  <div className="mt-4">
+                    <LockedField label="Email">
                       <input
                         type="email"
                         value={data.party2Email}
                         onChange={(e) => setData({ ...data, party2Email: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="laura.bianchi@email.com"
+                        className="input-dark"
+                        placeholder="giulia@email.com"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        P.IVA / Codice Fiscale
-                      </label>
-                      <input
-                        type="text"
-                        value={data.party2Vat}
-                        onChange={(e) => setData({ ...data, party2Vat: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="98765432109"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Indirizzo Completo
-                      </label>
-                      <input
-                        type="text"
-                        value={data.party2Address}
-                        onChange={(e) => setData({ ...data, party2Address: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Via Dante 456, 00100 Roma (RM)"
-                      />
-                    </div>
+                    </LockedField>
                   </div>
                 </div>
               </div>
 
               <div className="flex justify-between mt-8">
-                <button onClick={handleBack} className="btn-outline flex items-center">
-                  <ArrowLeft className="mr-2 w-5 h-5" />
-                  Indietro
+                <button onClick={handleBack} className="btn-outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Indietro
                 </button>
-                <button
-                  onClick={handleNext}
-                  disabled={!data.party1Name || !data.party2Name}
-                  className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                <button 
+                  onClick={handleNext} 
+                  disabled={!data.party1Name || !data.party2Name || !data.party1Vat || !data.party2Vat}
+                  className="btn-primary disabled:opacity-50"
                 >
-                  Avanti
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  Avanti <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step: Dettagli */}
+          {/* STEP 3: DETTAGLI */}
           {step === "details" && (
             <div className="animate-fade-in">
-              <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Dettagli del Contratto</h1>
-                <p className="text-xl text-gray-600">Le informazioni essenziali per il tuo {selectedContract?.name}</p>
+              <div className="text-center mb-10">
+                <h1 className="text-3xl font-black text-white mb-2">Dettagli del Contratto</h1>
+                <p className="text-gray-400">Definisci oggetto, compenso e durata</p>
               </div>
 
-              <div className="card p-8 max-w-4xl mx-auto">
-                <div className="space-y-6">
-                  {/* Descrizione Oggetto */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Descrizione dell&apos;Oggetto *
-                    </label>
-                    <textarea
-                      value={data.description}
-                      onChange={(e) => setData({ ...data, description: e.target.value })}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Es: Sviluppo di un sito web e-commerce con sistema di pagamento integrato, gestione catalogo prodotti e area admin..."
-                    />
-                    <p className="text-sm text-gray-500 mt-2">
-                      💡 Più dettagli dai, più preciso sarà il contratto generato dall&apos;AI
-                    </p>
-                  </div>
+              <div className="space-y-6">
+                {/* Oggetto - FREE */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-4">Oggetto del Contratto *</h3>
+                  <textarea
+                    value={data.description}
+                    onChange={(e) => setData({ ...data, description: e.target.value })}
+                    rows={4}
+                    className="input-dark"
+                    placeholder="Descrivi l'oggetto del contratto: cosa deve essere fatto, quali servizi vengono forniti, ecc."
+                  />
+                </div>
 
-                  {/* Deliverables - PRO FEATURE */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Deliverables / Risultati Attesi
-                      <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                        PRO
-                      </span>
-                    </label>
-                    <textarea
-                      value={data.deliverables}
-                      onChange={(e) => setData({ ...data, deliverables: e.target.value })}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                      placeholder="🔒 Sblocca con Piano PRO - Es: Sito web completo, 5 pagine, responsive..."
-                      disabled
-                    />
-                  </div>
-
-                  {/* Compenso e Pagamento */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                {/* Compenso - FREE */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-4">Compenso *</h3>
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Compenso Totale (€) *</label>
-                      <input
-                        type="number"
-                        value={data.amount}
-                        onChange={(e) => setData({ ...data, amount: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="3000"
-                      />
+                      <label className="block text-sm text-gray-400 mb-2">Importo</label>
+                      <div className="relative">
+                        <Euro className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <input
+                          type="number"
+                          value={data.amount}
+                          onChange={(e) => setData({ ...data, amount: e.target.value })}
+                          className="input-dark pl-12"
+                          placeholder="3000"
+                        />
+                      </div>
                     </div>
-
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Metodo di Pagamento
-                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                          PRO
-                        </span>
-                      </label>
+                    <LockedField label="Metodo di pagamento">
                       <select
                         value={data.paymentMethod}
                         onChange={(e) => setData({ ...data, paymentMethod: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                        disabled
+                        className="input-dark"
                       >
-                        <option>🔒 Bonifico bancario</option>
-                        <option>🔒 PayPal</option>
-                        <option>🔒 Contanti</option>
+                        <option value="">Seleziona...</option>
+                        <option value="bonifico">Bonifico Bancario</option>
+                        <option value="contanti">Contanti</option>
+                        <option value="assegno">Assegno</option>
+                        <option value="paypal">PayPal</option>
                       </select>
-                    </div>
+                    </LockedField>
                   </div>
 
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Termini di Pagamento
-                      <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                        PRO
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      value={data.paymentTerms}
-                      onChange={(e) => setData({ ...data, paymentTerms: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                      placeholder="🔒 Es: 50% anticipo, 50% a consegna / Rate mensili / Fine mese..."
-                      disabled
-                    />
+                  <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                    <LockedField label="Termini di pagamento">
+                      <select
+                        value={data.paymentTerms}
+                        onChange={(e) => setData({ ...data, paymentTerms: e.target.value })}
+                        className="input-dark"
+                      >
+                        <option value="">Seleziona...</option>
+                        <option value="anticipato">100% Anticipato</option>
+                        <option value="50-50">50% anticipo + 50% saldo</option>
+                        <option value="30-70">30% anticipo + 70% saldo</option>
+                        <option value="posticipato">100% a completamento</option>
+                        <option value="rate">Rate mensili</option>
+                      </select>
+                    </LockedField>
+                    <LockedField label="Scadenza pagamento">
+                      <select
+                        value={data.paymentSchedule}
+                        onChange={(e) => setData({ ...data, paymentSchedule: e.target.value })}
+                        className="input-dark"
+                      >
+                        <option value="">Seleziona...</option>
+                        <option value="immediato">Immediato</option>
+                        <option value="15gg">Entro 15 giorni</option>
+                        <option value="30gg">Entro 30 giorni</option>
+                        <option value="60gg">Entro 60 giorni</option>
+                      </select>
+                    </LockedField>
                   </div>
+                </div>
 
-                  {/* Date */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                {/* Durata - MIX */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-4">Durata</h3>
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Data di Inizio *</label>
+                      <label className="block text-sm text-gray-400 mb-2">Data inizio</label>
                       <input
                         type="date"
                         value={data.startDate}
                         onChange={(e) => setData({ ...data, startDate: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        className="input-dark"
                       />
                     </div>
-
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Data di Fine
-                        <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                          PRO
-                        </span>
-                      </label>
+                    <LockedField label="Data fine">
                       <input
                         type="date"
                         value={data.endDate}
                         onChange={(e) => setData({ ...data, endDate: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                        disabled
+                        className="input-dark"
                       />
-                    </div>
+                    </LockedField>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Durata</label>
-                    <input
-                      type="text"
-                      value={data.duration}
-                      onChange={(e) => setData({ ...data, duration: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                      placeholder="Es: 3 mesi, 12 mesi, indeterminato"
-                    />
-                  </div>
-
-                  {/* Modalità Lavoro - PRO */}
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Luogo di Lavoro
-                      <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                        PRO
-                      </span>
-                    </label>
-                    <select
-                      value={data.workLocation}
-                      onChange={(e) => setData({ ...data, workLocation: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                      disabled
-                    >
-                      <option>🔒 Da remoto</option>
-                      <option>🔒 In sede</option>
-                      <option>🔒 Ibrido</option>
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Orari di Lavoro
-                      <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-semibold">
-                        PRO
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      value={data.workHours}
-                      onChange={(e) => setData({ ...data, workHours: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
-                      placeholder="🔒 Es: Lun-Ven 9-18 / Flessibile / Part-time 20h/settimana..."
-                      disabled
-                    />
+                  <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                    <LockedField label="Rinnovo automatico">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => isPro && setData({ ...data, autoRenewal: true })}
+                          className={`flex-1 py-3 rounded-xl text-sm font-medium ${
+                            data.autoRenewal ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
+                          }`}
+                        >
+                          Sì
+                        </button>
+                        <button
+                          onClick={() => isPro && setData({ ...data, autoRenewal: false })}
+                          className={`flex-1 py-3 rounded-xl text-sm font-medium ${
+                            !data.autoRenewal ? "bg-violet-500 text-white" : "bg-white/5 text-gray-400"
+                          }`}
+                        >
+                          No
+                        </button>
+                      </div>
+                    </LockedField>
+                    <LockedField label="Preavviso disdetta">
+                      <select
+                        value={data.noticePeriod}
+                        onChange={(e) => setData({ ...data, noticePeriod: e.target.value })}
+                        className="input-dark"
+                      >
+                        <option value="">Seleziona...</option>
+                        <option value="15">15 giorni</option>
+                        <option value="30">30 giorni</option>
+                        <option value="60">60 giorni</option>
+                        <option value="90">90 giorni</option>
+                      </select>
+                    </LockedField>
                   </div>
                 </div>
 
-                {/* Upgrade Banner */}
-                <div className="mt-8 p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-lg">
-                  <p className="text-sm text-yellow-900 font-semibold mb-2">
-                    🔒 Molti campi sono bloccati nel piano FREE
-                  </p>
-                  <p className="text-sm text-yellow-800 mb-3">
-                    Passa al Piano PRO per sbloccare: Deliverables, Metodi pagamento, Termini pagamento, Date fine, Modalità lavoro e molto altro!
-                  </p>
-                  <Link href="/#prezzi" className="text-sm font-bold text-primary-600 hover:text-primary-700">
-                    Sblocca Piano PRO - €19/mese →
-                  </Link>
+                {/* Deliverables - PRO */}
+                <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    Deliverables e Milestone <ProBadge />
+                  </h3>
+                  <LockedField label="Cosa verrà consegnato">
+                    <textarea
+                      value={data.deliverables}
+                      onChange={(e) => setData({ ...data, deliverables: e.target.value })}
+                      rows={3}
+                      className="input-dark"
+                      placeholder="Elenca i deliverables: es. sito web, logo, report..."
+                    />
+                  </LockedField>
+                  <div className="mt-4">
+                    <LockedField label="Milestone e scadenze">
+                      <textarea
+                        value={data.milestones}
+                        onChange={(e) => setData({ ...data, milestones: e.target.value })}
+                        rows={3}
+                        className="input-dark"
+                        placeholder="Definisci le tappe: es. 15/02 - Bozza, 01/03 - Revisione..."
+                      />
+                    </LockedField>
+                  </div>
                 </div>
               </div>
 
               <div className="flex justify-between mt-8">
-                <button onClick={handleBack} className="btn-outline flex items-center">
-                  <ArrowLeft className="mr-2 w-5 h-5" />
-                  Indietro
+                <button onClick={handleBack} className="btn-outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Indietro
                 </button>
-                <button
-                  onClick={handleNext}
+                <button 
+                  onClick={handleNext} 
                   disabled={!data.description || !data.amount}
-                  className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary disabled:opacity-50"
                 >
-                  Avanti
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  Avanti <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step: Clausole */}
+          {/* STEP 4: CLAUSOLE */}
           {step === "clauses" && (
             <div className="animate-fade-in">
-              <div className="text-center mb-12">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Seleziona le Clausole</h1>
-                <p className="text-xl text-gray-600">
-                  Personalizza il contratto con le clausole che ti servono
-                </p>
+              <div className="text-center mb-10">
+                <h1 className="text-3xl font-black text-white mb-2">Clausole Aggiuntive</h1>
+                <p className="text-gray-400">Seleziona le clausole per il tuo contratto</p>
               </div>
 
-              <div className="card p-8 max-w-3xl mx-auto">
-                <div className="space-y-4">
-                  {commonClauses.map((clause) => (
+              <div className="space-y-3">
+                {commonClauses.map((clause) => {
+                  const isSelected = data.selectedClauses.includes(clause.id) || clause.required;
+                  const needsPro = clause.pro && !isPro;
+                  
+                  return (
                     <div
                       key={clause.id}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                        data.selectedClauses.includes(clause.id) || clause.required
-                          ? "border-primary-500 bg-primary-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
                       onClick={() => {
-                        if (!clause.required) {
-                          if (data.selectedClauses.includes(clause.id)) {
-                            setData({
-                              ...data,
-                              selectedClauses: data.selectedClauses.filter((id) => id !== clause.id),
-                            });
-                          } else {
-                            setData({
-                              ...data,
-                              selectedClauses: [...data.selectedClauses, clause.id],
-                            });
-                          }
+                        if (clause.required) return;
+                        if (needsPro) {
+                          router.push("/#prezzi");
+                          return;
                         }
+                        setData({
+                          ...data,
+                          selectedClauses: isSelected
+                            ? data.selectedClauses.filter((id) => id !== clause.id)
+                            : [...data.selectedClauses, clause.id],
+                        });
                       }}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                        isSelected
+                          ? "border-violet-500 bg-violet-500/10"
+                          : needsPro
+                          ? "border-white/10 bg-white/5 opacity-60"
+                          : "border-white/10 bg-white/5 hover:border-white/30"
+                      }`}
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 mb-1 flex items-center">
+                          <h3 className="font-semibold text-white flex items-center gap-2">
                             {clause.title}
-                            {clause.required && (
-                              <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                                Obbligatoria
-                              </span>
-                            )}
+                            {clause.required && <span className="text-xs text-gray-500">(Obbligatoria)</span>}
+                            {clause.pro && <ProBadge />}
                           </h3>
-                          <p className="text-sm text-gray-600">{clause.description}</p>
+                          <p className="text-sm text-gray-500 mt-1">{clause.description}</p>
                         </div>
-                        <div className="ml-4">
-                          {(data.selectedClauses.includes(clause.id) || clause.required) && (
-                            <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                          )}
-                        </div>
+                        {isSelected && <Check className="w-5 h-5 text-violet-400" />}
+                        {needsPro && <Lock className="w-5 h-5 text-amber-400" />}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
 
-                <div className="mt-8">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Richieste Aggiuntive (Opzionale)
-                  </label>
+              {/* Custom - PRO */}
+              <div className="mt-6 p-6 rounded-3xl bg-white/5 border border-white/10">
+                <LockedField label="Richieste personalizzate">
                   <textarea
                     value={data.customRequests}
                     onChange={(e) => setData({ ...data, customRequests: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Es: Vorrei aggiungere una clausola di esclusiva territoriale..."
+                    className="input-dark"
+                    placeholder="Clausole o richieste particolari che vuoi includere..."
                   />
+                </LockedField>
+              </div>
+
+              {/* Legal - PRO */}
+              <div className="mt-6 p-6 rounded-3xl bg-white/5 border border-white/10">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  Clausole Legali <ProBadge />
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <LockedField label="Foro competente">
+                    <input
+                      type="text"
+                      value={data.jurisdictionCity}
+                      onChange={(e) => setData({ ...data, jurisdictionCity: e.target.value })}
+                      className="input-dark"
+                      placeholder="Milano"
+                    />
+                  </LockedField>
+                  <LockedField label="Penale inadempimento (€)">
+                    <input
+                      type="number"
+                      value={data.penaltyAmount}
+                      onChange={(e) => setData({ ...data, penaltyAmount: e.target.value })}
+                      className="input-dark"
+                      placeholder="500"
+                    />
+                  </LockedField>
                 </div>
               </div>
 
               <div className="flex justify-between mt-8">
-                <button onClick={handleBack} className="btn-outline flex items-center">
-                  <ArrowLeft className="mr-2 w-5 h-5" />
-                  Indietro
+                <button onClick={handleBack} className="btn-outline">
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Indietro
                 </button>
-                <button onClick={handleGenerate} className="btn-primary flex items-center">
-                  <Sparkles className="mr-2 w-5 h-5" />
-                  Genera Contratto con AI
+                <button onClick={handleGenerate} className="btn-primary">
+                  <Sparkles className="w-4 h-4 mr-2" /> Genera Contratto
                 </button>
               </div>
-            </div>
-          )}
 
-          {/* Step: Generazione */}
-          {step === "generate" && (
-            <div className="animate-fade-in">
-              <div className="text-center py-20">
-                <div className="animate-pulse mb-8">
-                  <Sparkles className="w-20 h-20 text-primary-500 mx-auto" />
-                </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  L&apos;AI sta Generando il Tuo Contratto...
-                </h1>
-                <p className="text-xl text-gray-600 mb-8">Questo richiederà solo 30 secondi ✨</p>
-                <div className="max-w-md mx-auto">
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-primary animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step: Preview */}
-          {step === "preview" && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center space-x-2 bg-primary-100 text-primary-700 px-6 py-3 rounded-full mb-6">
-                  <Check className="w-5 h-5" />
-                  <span className="font-semibold">Contratto Generato con Successo!</span>
-                </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Ecco il Tuo Contratto</h1>
-                <p className="text-xl text-gray-600">Revisionalo e scaricalo quando sei pronto</p>
-              </div>
-
-              <div className="card p-8 mb-8">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="w-6 h-6 text-primary-600" />
+              {!isPro && (
+                <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-bold text-gray-900">{selectedContract?.name}</h3>
-                      <p className="text-sm text-gray-500">Generato il {new Date().toLocaleDateString("it-IT")}</p>
+                      <p className="text-white font-medium">Piano Free</p>
+                      <p className="text-sm text-gray-400">
+                        Il contratto avrà un watermark. <Link href="/#prezzi" className="text-amber-400 hover:underline">Passa a PRO</Link> per rimuoverlo e sbloccare tutte le opzioni.
+                      </p>
                     </div>
                   </div>
-                  <button onClick={handleDownload} className="btn-primary flex items-center">
-                    <Download className="mr-2 w-5 h-5" />
-                    Scarica PDF
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GENERATING */}
+          {step === "generate" && (
+            <div className="text-center py-20">
+              <div className="relative w-20 h-20 mx-auto mb-8">
+                <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-ping" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-violet-400 animate-spin" />
+                </div>
+              </div>
+              <h2 className="text-3xl font-black text-white mb-3">L'AI sta generando...</h2>
+              <p className="text-gray-400">Circa 30 secondi</p>
+            </div>
+          )}
+
+          {/* PREVIEW */}
+          {step === "preview" && (
+            <div className="animate-fade-in">
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/20 text-green-400 mb-4">
+                  <Check className="w-4 h-4" /> Contratto Generato
+                </div>
+                <h1 className="text-3xl font-black text-white">Ecco il Tuo Contratto</h1>
+              </div>
+
+              <div className="p-6 rounded-3xl bg-white/5 border border-white/10 mb-6">
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-violet-400" />
+                    <div>
+                      <h3 className="font-bold text-white">{selectedContract?.name}</h3>
+                      <p className="text-sm text-gray-500">{new Date().toLocaleDateString("it-IT")}</p>
+                    </div>
+                  </div>
+                  <button onClick={handleDownload} className="btn-primary">
+                    <Download className="w-4 h-4 mr-2" /> Scarica
                   </button>
                 </div>
-
-                <div
-                  className="prose prose-sm max-w-none bg-gray-50 p-6 rounded-lg border border-gray-200 max-h-[600px] overflow-y-auto"
-                  style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}
-                >
+                <pre className="p-4 rounded-2xl bg-black/50 text-gray-300 text-sm overflow-auto max-h-[500px] whitespace-pre-wrap font-mono">
                   {generatedContract}
-                </div>
+                </pre>
               </div>
 
-              <div className="card bg-primary-50 border-primary-200 p-6">
-                <h3 className="font-bold text-gray-900 mb-3">💡 Prossimi Passi</h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-center space-x-2">
-                    <Check className="w-4 h-4 text-primary-600" />
-                    <span>Leggi attentamente il contratto</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <Check className="w-4 h-4 text-primary-600" />
-                    <span>Scarica il PDF</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <Check className="w-4 h-4 text-primary-600" />
-                    <span>Invialo alla controparte per la firma</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <Check className="w-4 h-4 text-primary-600" />
-                    <span>
-                      Per contratti complessi, considera una revisione legale (upgrade al piano Business)
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="text-center mt-8">
-                <Link href="/generate" className="text-primary-600 font-semibold hover:text-primary-700">
-                  ← Genera un Altro Contratto
+              <div className="flex justify-center gap-4">
+                <Link href="/dashboard" className="btn-outline">
+                  Vai alla Dashboard
                 </Link>
+                <button onClick={() => { setData(initialData); setStep("type"); }} className="btn-secondary">
+                  Nuovo Contratto
+                </button>
               </div>
             </div>
           )}
@@ -800,179 +925,3 @@ export default function GeneratePage() {
     </div>
   );
 }
-
-// Funzione che simula generazione AI (in produzione: API OpenAI/Claude)
-function generateContractText(data: ContractData, contractName: string): string {
-  const today = new Date().toLocaleDateString("it-IT");
-
-  return `
-═══════════════════════════════════════════════════════════════
-                    ${contractName.toUpperCase()}
-═══════════════════════════════════════════════════════════════
-
-Generato da easycontracts.ai il ${today}
-
-
-TRA LE PARTI:
-
-1) ${data.party1Name}
-   Email: ${data.party1Email || "N/A"}
-   P.IVA/CF: ${data.party1Vat || "N/A"}
-   (di seguito "PARTE 1")
-
-E
-
-2) ${data.party2Name}
-   Email: ${data.party2Email || "N/A"}
-   P.IVA/CF: ${data.party2Vat || "N/A"}
-   (di seguito "PARTE 2")
-
-
-═══════════════════════════════════════════════════════════════
-PREMESSO CHE
-═══════════════════════════════════════════════════════════════
-
-Le parti intendono regolare i rapporti derivanti dalla seguente attività:
-
-${data.description}
-
-
-═══════════════════════════════════════════════════════════════
-CLAUSOLE
-═══════════════════════════════════════════════════════════════
-
-Art. 1 - OGGETTO DEL CONTRATTO
-
-La PARTE 1 si impegna a fornire le seguenti prestazioni:
-${data.description}
-
-Le prestazioni dovranno essere svolte nel rispetto delle modalità 
-concordate tra le parti e secondo le migliori pratiche professionali.
-
-
-Art. 2 - DURATA
-
-Il presente contratto ha durata: ${data.duration || "come concordato tra le parti"}
-Data di inizio: ${data.startDate ? new Date(data.startDate).toLocaleDateString("it-IT") : "Da concordare"}
-
-
-Art. 3 - COMPENSO
-
-Per le prestazioni oggetto del presente contratto, la PARTE 2 
-corrisponderà alla PARTE 1 un compenso di € ${data.amount}.
-
-Modalità di pagamento: secondo accordi tra le parti.
-Il compenso si intende al netto di eventuali oneri fiscali e previdenziali.
-
-
-Art. 4 - OBBLIGHI DELLE PARTI
-
-La PARTE 1 si impegna a:
-- Eseguire le prestazioni con diligenza professionale
-- Rispettare le scadenze concordate
-- Informare tempestivamente la PARTE 2 di eventuali problematiche
-
-La PARTE 2 si impegna a:
-- Fornire tutte le informazioni necessarie all'esecuzione
-- Corrispondere il compenso pattuito nei termini previsti
-- Collaborare attivamente per il raggiungimento degli obiettivi
-
-
-${
-  data.selectedClauses.includes("riservatezza")
-    ? `
-Art. 5 - RISERVATEZZA
-
-Le parti si impegnano a mantenere riservate tutte le informazioni
-confidenziali di cui vengano a conoscenza durante l'esecuzione del
-presente contratto. Tale obbligo permane anche dopo la cessazione
-del rapporto contrattuale.
-`
-    : ""
-}
-
-${
-  data.selectedClauses.includes("proprieta-intellettuale")
-    ? `
-Art. 6 - PROPRIETÀ INTELLETTUALE
-
-Tutti i diritti di proprietà intellettuale relativi alle opere
-create nell'ambito del presente contratto saranno di proprietà
-della PARTE 2, salvo diverso accordo scritto tra le parti.
-`
-    : ""
-}
-
-${
-  data.selectedClauses.includes("risoluzione")
-    ? `
-Art. 7 - RISOLUZIONE ANTICIPATA
-
-Ciascuna parte potrà recedere dal presente contratto con preavviso
-scritto di 30 giorni, senza necessità di fornire motivazione alcuna.
-In caso di inadempimento grave, il contratto potrà essere risolto
-immediatamente ai sensi dell'art. 1456 c.c.
-`
-    : ""
-}
-
-${
-  data.selectedClauses.includes("controversie")
-    ? `
-Art. 8 - RISOLUZIONE CONTROVERSIE
-
-Per qualsiasi controversia derivante dal presente contratto sarà
-competente il Foro di [INSERIRE CITTÀ], con esclusione di ogni
-altro foro alternativo.
-Le parti si impegnano preventivamente a tentare una conciliazione
-bonaria delle controversie.
-`
-    : ""
-}
-
-
-Art. ${data.selectedClauses.length + 5} - DISPOSIZIONI FINALI
-
-Il presente contratto è regolato dalla legge italiana.
-Ogni modifica al presente contratto dovrà essere fatta per iscritto.
-Le parti dichiarano di aver letto, compreso e accettato integralmente
-quanto sopra riportato.
-
-
-${data.customRequests ? `NOTE AGGIUNTIVE:\n${data.customRequests}\n\n` : ""}
-
-═══════════════════════════════════════════════════════════════
-FIRME
-═══════════════════════════════════════════════════════════════
-
-Luogo e Data: __________________, ${today}
-
-
-PARTE 1                                    PARTE 2
-${data.party1Name}                         ${data.party2Name}
-
-_______________________                    _______________________
-        (Firma)                                    (Firma)
-
-
-═══════════════════════════════════════════════════════════════
-
-⚠️ DISCLAIMER:
-Questo contratto è stato generato da easycontracts.ai tramite 
-intelligenza artificiale. Non costituisce consulenza legale.
-Per questioni complesse, si consiglia di consultare un avvocato.
-
-═══════════════════════════════════════════════════════════════
-
-⚠️ WATERMARK - PIANO FREE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Questo contratto è stato generato con il PIANO FREE di easycontracts.
-Per rimuovere questo watermark, passa al Piano PRO (€19/mese).
-
-Scopri di più: https://easycontracts.ai
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-═══════════════════════════════════════════════════════════════
-`;
-}
-

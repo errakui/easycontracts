@@ -13,6 +13,7 @@ export interface ContractClause {
   title: string;
   description: string;
   required: boolean;
+  pro?: boolean; // true = richiede piano PRO
 }
 
 export const contractCategories = [
@@ -387,6 +388,7 @@ export const contractTypes: ContractType[] = [
 ];
 
 export const commonClauses: ContractClause[] = [
+  // OBBLIGATORIE (sempre incluse)
   {
     id: "oggetto",
     title: "Oggetto del Contratto",
@@ -405,11 +407,13 @@ export const commonClauses: ContractClause[] = [
     description: "Importo, modalità e tempi di pagamento",
     required: true,
   },
+  
+  // FREE - Selezionabili gratis
   {
     id: "obblighi",
     title: "Obblighi delle Parti",
     description: "Responsabilità di ciascuna parte",
-    required: true,
+    required: false,
   },
   {
     id: "riservatezza",
@@ -417,23 +421,77 @@ export const commonClauses: ContractClause[] = [
     description: "Protezione informazioni sensibili",
     required: false,
   },
+  
+  // PRO - Richiedono abbonamento
   {
     id: "risoluzione",
     title: "Risoluzione Anticipata",
     description: "Condizioni per interrompere il contratto",
     required: false,
+    pro: true,
   },
   {
     id: "controversie",
     title: "Risoluzione Controversie",
     description: "Foro competente e modalità di arbitrato",
     required: false,
+    pro: true,
   },
   {
     id: "proprieta-intellettuale",
     title: "Proprietà Intellettuale",
     description: "Diritti su opere e creazioni",
     required: false,
+    pro: true,
+  },
+  {
+    id: "penale",
+    title: "Clausola Penale",
+    description: "Penalità economica per inadempimento",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "forza-maggiore",
+    title: "Forza Maggiore",
+    description: "Eventi imprevedibili che impediscono l'esecuzione",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "esclusiva",
+    title: "Clausola di Esclusiva",
+    description: "Divieto di collaborare con concorrenti",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "recesso",
+    title: "Diritto di Recesso",
+    description: "Possibilità di uscire dal contratto con preavviso",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "garanzia",
+    title: "Garanzia sui Risultati",
+    description: "Impegno sulla qualità del lavoro svolto",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "limitazione-responsabilita",
+    title: "Limitazione di Responsabilità",
+    description: "Tetto massimo ai danni risarcibili",
+    required: false,
+    pro: true,
+  },
+  {
+    id: "gdpr",
+    title: "Conformità GDPR",
+    description: "Trattamento dati personali secondo normativa",
+    required: false,
+    pro: true,
   },
 ];
 

@@ -1,20 +1,25 @@
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY non configurata");
+// Verifica che la chiave Stripe sia configurata
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+if (!stripeSecretKey) {
+  console.warn("⚠️ STRIPE_SECRET_KEY non configurata. Stripe non funzionerà.");
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-11-17.clover",
-  typescript: true,
-});
+export const stripe = stripeSecretKey 
+  ? new Stripe(stripeSecretKey, {
+      apiVersion: "2025-11-17.clover",
+      typescript: true,
+    })
+  : null as unknown as Stripe;
 
-// IDs dei prodotti Stripe (da configurare nel dashboard Stripe)
+// IDs dei prodotti Stripe
 export const STRIPE_PLANS = {
   FREE: {
     name: "Free",
     price: 0,
-    priceId: null, // Nessun price ID per il piano free
+    priceId: null,
     features: [
       "1 contratto gratis",
       "Template base (4 contratti)",
@@ -25,7 +30,7 @@ export const STRIPE_PLANS = {
   PRO: {
     name: "Pro",
     price: 19,
-    priceId: process.env.STRIPE_PRICE_PRO || "price_pro_monthly", // Sostituisci con il tuo Price ID
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
     features: [
       "10 contratti/mese",
       "Tutti i template (50+)",
@@ -37,7 +42,7 @@ export const STRIPE_PLANS = {
   BUSINESS: {
     name: "Business",
     price: 49,
-    priceId: process.env.STRIPE_PRICE_BUSINESS || "price_business_monthly", // Sostituisci con il tuo Price ID
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS,
     features: [
       "Contratti illimitati",
       "Nessun watermark",
@@ -45,7 +50,7 @@ export const STRIPE_PLANS = {
       "API access",
       "Supporto prioritario",
     ],
-    contractsLimit: -1, // -1 = illimitati
+    contractsLimit: -1,
   },
 };
 
@@ -56,7 +61,15 @@ export async function createCheckoutSession(
   cancelUrl?: string,
   customerEmail?: string
 ) {
-  const sessionConfig: any = {
+  if (!stripe) {
+    throw new Error("Stripe non è configurato. Controlla le variabili d'ambiente.");
+  }
+
+  if (!priceId) {
+    throw new Error("Price ID mancante. Configura NEXT_PUBLIC_STRIPE_PRICE_PRO e NEXT_PUBLIC_STRIPE_PRICE_BUSINESS.");
+  }
+
+  const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [
@@ -68,22 +81,31 @@ export async function createCheckoutSession(
     success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
     cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/#prezzi`,
     allow_promotion_codes: true,
+    billing_address_collection: "auto",
+    locale: "it",
   };
 
   // Se c'è un customerId esistente, usalo
   if (customerId) {
     sessionConfig.customer = customerId;
   } else if (customerEmail) {
-    // Altrimenti usa l'email per pre-compilare e creare il customer
     sessionConfig.customer_email = customerEmail;
   }
 
-  const session = await stripe.checkout.sessions.create(sessionConfig);
-
-  return session;
+  try {
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+    return session;
+  } catch (error: any) {
+    console.error("Errore creazione sessione Stripe:", error);
+    throw new Error(`Errore Stripe: ${error.message}`);
+  }
 }
 
 export async function createCustomerPortalSession(customerId: string) {
+  if (!stripe) {
+    throw new Error("Stripe non è configurato");
+  }
+
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
@@ -93,6 +115,10 @@ export async function createCustomerPortalSession(customerId: string) {
 }
 
 export async function getCustomerSubscriptions(customerId: string) {
+  if (!stripe) {
+    throw new Error("Stripe non è configurato");
+  }
+
   const subscriptions = await stripe.subscriptions.list({
     customer: customerId,
     status: "active",
@@ -102,3 +128,14 @@ export async function getCustomerSubscriptions(customerId: string) {
   return subscriptions.data;
 }
 
+export async function cancelSubscription(subscriptionId: string) {
+  if (!stripe) {
+    throw new Error("Stripe non è configurato");
+  }
+
+  const subscription = await stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: true,
+  });
+
+  return subscription;
+}

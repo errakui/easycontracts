@@ -1,620 +1,552 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import {
   Sparkles,
   Zap,
   Shield,
-  Clock,
   Euro,
   CheckCircle,
   ArrowRight,
-  AlertTriangle,
   FileText,
+  Star,
+  ChevronDown,
+  Play,
+  ArrowUpRight,
+  Clock,
   Users,
-  TrendingUp,
+  Building2,
+  Briefcase,
+  Home,
+  Lock,
+  Code,
+  Handshake,
+  Scale,
+  Database,
+  Bot,
+  Download,
+  Cpu,
+  BookOpen,
+  RefreshCw,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import StatsBar from "@/components/StatsBar";
-import PricingCard from "@/components/PricingCard";
-import { contractCategories, getPopularContracts } from "@/lib/contracts";
 
 export default function HomePage() {
-  const popularContracts = getPopularContracts();
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (heroRef.current) {
+        const rect = heroRef.current.getBoundingClientRect();
+        setMousePosition({
+          x: ((e.clientX - rect.left) / rect.width) * 100,
+          y: ((e.clientY - rect.top) / rect.height) * 100,
+        });
+      }
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#030014] text-white overflow-x-hidden">
       <Navbar />
 
-      {/* HERO SECTION - PROVOCATORIO */}
-      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary-600 rounded-full blur-3xl"></div>
+      {/* HERO */}
+      <section 
+        ref={heroRef}
+        className="relative min-h-[100vh] flex items-center justify-center px-4 overflow-hidden"
+        style={{
+          background: `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, rgba(99, 102, 241, 0.15) 0%, transparent 50%)`,
+        }}
+      >
+        {/* Background */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(99, 102, 241, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.3) 1px, transparent 1px)`,
+            backgroundSize: '100px 100px',
+          }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center">
-            {/* Badge Provocatorio */}
-            <div className="inline-flex items-center space-x-2 bg-primary-500/20 border border-primary-500/30 rounded-full px-6 py-2 mb-8 animate-fade-in">
-              <Sparkles className="w-4 h-4 text-primary-400" />
-              <span className="text-sm font-medium text-primary-300">
-                L&apos;avvocato ti ha chiesto €800? Spendine €19.
-              </span>
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-gradient-to-r from-violet-600/30 to-indigo-600/30 blur-[100px] animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 blur-[80px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+
+        <div className="relative z-10 max-w-7xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-10 animate-fade-in">
+            <Bot className="w-5 h-5 text-violet-400" />
+            <span className="text-sm text-gray-300">Powered by AI • Database di 500+ template</span>
             </div>
 
-            {/* Title - PROVOCATORIO */}
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-slide-up text-white">
-              Smetti di Pagare
-              <br />
-              <span className="text-gradient bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                €800 per un Contratto
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-[0.85] tracking-tight mb-8">
+            <span className="block text-white">Contratti Legali</span>
+            <span className="block bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 bg-clip-text text-transparent">
+              in 30 Secondi
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto animate-slide-up">
-              L&apos;AI genera contratti professionali in <strong className="text-primary-400">30 secondi</strong>.
+          {/* Subheadline - ONESTA */}
+          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
+            Compila un form, l&apos;AI genera il contratto, scarichi il PDF.
               <br />
-              Niente più avvocati, niente più attese, niente più costi folli.
-            </p>
+            <span className="text-white font-semibold">€19/mese</span> invece di <span className="line-through decoration-red-500">€800</span> per ogni contratto.
+          </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 animate-slide-up">
-              <Link href="/generate" className="btn-primary text-lg group">
-                Genera il Tuo Contratto Gratis
-                <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <Link 
+              href="/generate" 
+              className="group relative px-8 py-5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl font-bold text-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(99,102,241,0.4)]"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Genera Gratis
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
               </Link>
-              <a href="#come-funziona" className="btn-outline border-gray-500 text-gray-300 hover:bg-gray-800">
-                Scopri Come Funziona
+            <a 
+              href="#come-funziona" 
+              className="flex items-center gap-3 px-8 py-5 rounded-2xl font-semibold text-gray-300 hover:text-white border border-white/10 hover:border-white/30 hover:bg-white/5 transition-all"
+            >
+              <Play className="w-5 h-5" />
+              Come Funziona
               </a>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-primary-500" />
-                <span>Nessuna carta di credito</span>
+          {/* Trust - ONESTO */}
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span>Nessuna carta richiesta</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-primary-500" />
-                <span>1 contratto gratis</span>
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-violet-500" />
+              <span>500+ template italiani</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-primary-500" />
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-yellow-500" />
                 <span>Pronto in 30 secondi</span>
               </div>
             </div>
           </div>
 
-          {/* Visual Demo */}
-          <div className="mt-16 relative">
-            <div className="card bg-gray-800 border-gray-700 p-8 max-w-4xl mx-auto shadow-2xl">
-              <div className="flex items-center space-x-2 mb-4 text-gray-400">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="ml-4 text-sm text-gray-300">easycontracts.ai</span>
-              </div>
-              <div className="bg-gray-950 rounded-lg p-6 font-mono text-sm border border-gray-800">
-                <div className="text-gray-400 mb-2">Tu:</div>
-                <div className="text-primary-400 mb-4">
-                  &quot;Ho bisogno di un contratto freelance per un web designer, 3 mesi, €3000, da remoto&quot;
-                </div>
-                <div className="text-gray-400 mb-2">easycontracts AI:</div>
-                <div className="text-gray-200">
-                  ✅ Contratto generato in 2 secondi
-                  <br />
-                  📄 Completo di tutte le clausole necessarie
-                  <br />
-                  🔒 Conforme alla legge italiana
-                  <br />
-                  💾 Pronto per il download e la firma
-                </div>
-              </div>
-            </div>
+        {/* Scroll */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
+          <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center pt-2">
+            <div className="w-1 h-3 bg-white/50 rounded-full animate-bounce"></div>
           </div>
         </div>
       </section>
 
-      {/* Stats Bar */}
-      <StatsBar />
-
-      {/* PROBLEMA AVVOCATI COSTOSI */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-800 to-gray-900 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <div className="text-6xl mb-6">😤</div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-              Stanco di Pagare Una Fortuna per i Contratti?
+      {/* COME FUNZIONA - SEMPLICE E ONESTO */}
+      <section id="come-funziona" className="py-32 px-4 relative">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6">
+              Come Funziona
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Gli avvocati costano troppo. I template online sono rischiosi. Lavorare senza contratto è un suicidio. 
-              C&apos;è una soluzione migliore.
+            <p className="text-xl text-gray-400">
+              3 step. Nessuna complicazione.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="card bg-gray-800 border-2 border-gray-700 hover:border-primary-500 transition-all">
-              <div className="text-5xl mb-4">💸</div>
-              <h3 className="text-2xl font-bold mb-3 text-white">Costi Proibitivi</h3>
-              <p className="text-gray-300 mb-4">
-                Un avvocato ti chiede €300-800 per un semplice contratto freelance. €1.200+ per contratti più complessi. Per una PMI con 10-20 contratti l&apos;anno? Impossibile.
-              </p>
-              <div className="bg-primary-900 rounded-lg p-3 text-center">
-                <p className="text-primary-300 font-bold">€800 → €19/mese</p>
-              </div>
-            </div>
-
-            <div className="card bg-gray-800 border-2 border-gray-700 hover:border-primary-500 transition-all">
-              <div className="text-5xl mb-4">⏳</div>
-              <h3 className="text-2xl font-bold mb-3 text-white">Perdita di Tempo</h3>
-              <p className="text-gray-300 mb-4">
-                Attendi 3-7 giorni per una bozza. Poi le modifiche: altri 2-3 giorni. Intanto il cliente è scappato o hai perso l&apos;opportunità di business.
-              </p>
-              <div className="bg-primary-900 rounded-lg p-3 text-center">
-                <p className="text-primary-300 font-bold">7 giorni → 30 secondi</p>
-              </div>
-            </div>
-
-            <div className="card bg-gray-800 border-2 border-gray-700 hover:border-primary-500 transition-all">
-              <div className="text-5xl mb-4">⚠️</div>
-              <h3 className="text-2xl font-bold mb-3 text-white">Rischio Enorme</h3>
-              <p className="text-gray-300 mb-4">
-                Senza contratto scritto sei esposto a: mancati pagamenti, controversie legali, perdita di proprietà intellettuale. €60 miliardi di crediti insoluti in Italia ogni anno.
-              </p>
-              <div className="bg-red-900 rounded-lg p-3 text-center">
-                <p className="text-red-200 font-bold">Proteggi il tuo lavoro</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card bg-gradient-to-r from-red-900 to-red-800 p-8 text-center border-2 border-red-600">
-            <p className="text-3xl font-bold mb-3 text-white">45% dei freelancer lavora SENZA contratto</p>
-            <p className="text-xl text-red-100 mb-4">
-              Non perché vogliono rischiare, ma perché non possono permettersi €500-800 per ogni progetto.
-            </p>
-            <p className="text-red-200 font-semibold">
-              → È qui che entra in gioco easycontracts
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* COME FUNZIONA */}
-      <section id="come-funziona" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">Come Funziona easycontracts</h2>
-            <p className="section-subtitle text-gray-600">5 passi per il tuo contratto perfetto. Zero sbattimenti.</p>
-          </div>
-
-          <div className="grid md:grid-cols-5 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 step: "1",
-                icon: <FileText className="w-8 h-8" />,
-                title: "Scegli il Tipo",
-                desc: "Freelance, affitto, NDA, partnership... 30+ template pronti",
+                icon: <FileText className="w-10 h-10" />, 
+                title: "Compila il Form", 
+                desc: "Inserisci i dati delle parti, l'oggetto del contratto e scegli le clausole che ti servono.",
+                color: "violet" 
               },
               {
                 step: "2",
-                icon: <Users className="w-8 h-8" />,
-                title: "Indica le Parti",
-                desc: "Chi firma? Nome, dati, ruoli. Compilazione super veloce",
+                icon: <Cpu className="w-10 h-10" />, 
+                title: "L'AI Genera", 
+                desc: "La nostra AI, istruita con leggi italiane aggiornate e 500+ template, genera il tuo contratto personalizzato.",
+                color: "cyan" 
               },
               {
                 step: "3",
-                icon: <Sparkles className="w-8 h-8" />,
-                title: "Personalizza",
-                desc: "Clausole, importi, date. L'AI adatta tutto al tuo caso",
-              },
-              {
-                step: "4",
-                icon: <Zap className="w-8 h-8" />,
-                title: "AI Genera",
-                desc: "30 secondi e hai il contratto completo e professionale",
-              },
-              {
-                step: "5",
-                icon: <CheckCircle className="w-8 h-8" />,
-                title: "Scarica & Firma",
-                desc: "PDF pronto. Firma digitale integrata. Fatto!",
+                icon: <Download className="w-10 h-10" />, 
+                title: "Scarica il PDF", 
+                desc: "Contratto pronto da stampare, firmare e usare. In 30 secondi invece di 3 giorni.",
+                color: "emerald" 
               },
             ].map((item, index) => (
-              <div key={index} className="relative">
-                <div className="card hover:shadow-2xl transform hover:scale-105 transition-all">
-                  <div className="bg-gradient-primary text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mb-4">
+              <div key={index} className="relative group">
+                <div className={`p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-${item.color}-500/50 transition-all`}>
+                  <div className={`absolute -top-4 -left-4 w-12 h-12 rounded-2xl bg-${item.color}-500 flex items-center justify-center font-black text-xl`}>
                     {item.step}
                   </div>
-                  <div className="text-primary-600 mb-3">{item.icon}</div>
-                  <h3 className="text-xl font-bold mb-2 text-gray-900">{item.title}</h3>
-                  <p className="text-gray-600 text-sm">{item.desc}</p>
+                  <div className={`w-16 h-16 rounded-2xl bg-${item.color}-500/20 flex items-center justify-center mb-6 text-${item.color}-400`}>
+                    {item.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-400">{item.desc}</p>
                 </div>
-                {index < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 text-primary-500">
-                    <ArrowRight className="w-6 h-6" />
-                  </div>
-                )}
               </div>
             ))}
           </div>
 
-          <div className="mt-16 text-center">
-            <Link href="/generate" className="btn-primary text-lg group inline-flex items-center">
-              Prova Subito Gratis
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          <div className="text-center mt-16">
+            <Link 
+              href="/generate" 
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-bold rounded-2xl hover:bg-gray-100 transition-all"
+            >
+              Prova Ora Gratis
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* CONTRATTI POPOLARI */}
-      <section id="contratti" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">Contratti Più Richiesti</h2>
-            <p className="section-subtitle text-gray-600">I contratti che generi in 30 secondi</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {popularContracts.map((contract) => (
-              <div key={contract.id} className="card hover:shadow-2xl transform hover:scale-105 transition-all">
-                <div className="text-5xl mb-4">{contract.icon}</div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900">{contract.name}</h3>
-                <p className="text-gray-600 mb-4">{contract.description}</p>
-                <Link
-                  href={`/generate?type=${contract.id}`}
-                  className="text-primary-600 font-semibold hover:text-primary-700 inline-flex items-center group"
-                >
-                  Genera Ora
-                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="card bg-gradient-to-r from-primary-600 to-primary-700 text-white p-8 text-center">
-            <h3 className="text-2xl font-bold mb-4">+ Altri 27 Tipi di Contratto</h3>
-            <p className="text-primary-100 mb-6">
-              Business, Tech, Immobiliare, Privati... Tutto quello di cui hai bisogno
-            </p>
-            <Link href="/generate" className="bg-white text-primary-600 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 inline-block transition-colors">
-              Esplora Tutti i Contratti
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* PERCHÉ EASYCONTRACTS */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">Perché easycontracts Spacca</h2>
-            <p className="section-subtitle text-gray-600">Non siamo i soliti template del 2005</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+      {/* LA NOSTRA AI - ONESTA */}
+      <section className="py-32 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/20 via-transparent to-transparent"></div>
+        
+        <div className="max-w-7xl mx-auto relative">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm font-medium mb-6">
+                <Bot className="w-4 h-4" />
+                Intelligenza Artificiale
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black mb-6">
+                AI Istruita per i<br />
+                <span className="text-violet-400">Contratti Italiani</span>
+              </h2>
+              <p className="text-xl text-gray-400 mb-8 leading-relaxed">
+                La nostra AI non è un chatbot generico. È stata addestrata specificamente su:
+              </p>
+              <ul className="space-y-4">
                 {[
-                  {
-                    icon: <Sparkles className="w-6 h-6 text-primary-500" />,
-                    title: "AI Conversazionale",
-                    desc: "Non template fissi. L'AI capisce cosa ti serve e genera il contratto perfetto per te.",
-                  },
-                  {
-                    icon: <Shield className="w-6 h-6 text-primary-500" />,
-                    title: "Conforme alla Legge Italiana",
-                    desc: "Tutti i contratti seguono il codice civile italiano. Validati da avvocati professionisti.",
-                  },
-                  {
-                    icon: <Zap className="w-6 h-6 text-primary-500" />,
-                    title: "Veloce Come un Razzo",
-                    desc: "30 secondi per generare. 2 minuti per personalizzare. 5 minuti per firmare. Fatto.",
-                  },
-                  {
-                    icon: <Euro className="w-6 h-6 text-primary-500" />,
-                    title: "Prezzo Onesto",
-                    desc: "€19/mese per 10 contratti al mese. Piano Business per illimitati.",
-                  },
-                ].map((feature, index) => (
-                  <div key={index} className="flex space-x-4">
-                    <div className="flex-shrink-0">{feature.icon}</div>
-                    <div>
-                      <h3 className="text-xl font-bold mb-1 text-gray-900">{feature.title}</h3>
-                      <p className="text-gray-600">{feature.desc}</p>
-                    </div>
-                  </div>
+                  "500+ template di contratti reali italiani",
+                  "Codice Civile e normative aggiornate 2024",
+                  "Esempi di clausole per ogni situazione",
+                  "Linguaggio legale italiano corretto",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-300">
+                    <CheckCircle className="w-5 h-5 text-violet-400 flex-shrink-0" />
+                    {item}
+                  </li>
                 ))}
+              </ul>
+          </div>
+
+            <div className="relative">
+              <div className="p-8 rounded-3xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <pre className="text-sm text-gray-400 font-mono">
+{`// Input utente
+{
+  tipo: "Contratto Freelance",
+  committente: "Mario Rossi",
+  prestatore: "Giulia Bianchi",
+  compenso: "€3.000",
+  durata: "3 mesi"
+}
+
+// AI genera → PDF pronto ✓`}
+                </pre>
+              </div>
+              <div className="absolute -bottom-4 -right-4 p-4 rounded-2xl bg-violet-500/20 border border-violet-500/30">
+                <Sparkles className="w-8 h-8 text-violet-400" />
               </div>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="card bg-white border-2 border-gray-200 p-8">
-              <div className="flex items-center mb-6">
-                <div className="flex space-x-1 mr-3">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-400 text-2xl">★</span>
+      {/* BENTO - FEATURES ONESTE */}
+      <section className="py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6">
+              Perché Usare easycontracts?
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
+            {/* Database Card */}
+            <div className="md:col-span-2 md:row-span-2 relative group rounded-3xl bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-white/10 p-8 overflow-hidden hover:border-violet-500/50 transition-all">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-violet-500/20 rounded-full blur-[80px]"></div>
+              <div className="relative z-10 h-full flex flex-col">
+                <div className="w-14 h-14 rounded-2xl bg-violet-500/20 flex items-center justify-center mb-6">
+                  <Database className="w-7 h-7 text-violet-400" />
+                    </div>
+                <h3 className="text-3xl font-bold mb-4">500+ Template Italiani</h3>
+                <p className="text-gray-400 text-lg mb-auto">
+                  Non template tradotti dall&apos;inglese. Contratti scritti per il mercato italiano, 
+                  con clausole specifiche per la nostra legislazione.
+                </p>
+                <div className="flex gap-2 mt-6">
+                  {['💼', '🏠', '🔒', '🤝', '💻'].map((emoji, i) => (
+                    <span key={i} className="text-2xl">{emoji}</span>
                   ))}
                 </div>
-                <span className="text-gray-600 font-semibold">4.8/5 su Trustpilot</span>
-              </div>
-              <h3 className="text-2xl font-bold mb-6 text-gray-900">Recensioni Verificate</h3>
-              <div className="space-y-6">
-                <div className="border-l-4 border-primary-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
-                  <div className="flex space-x-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className="text-yellow-400">★</span>
-                    ))}
-                  </div>
-                  <p className="text-gray-800 mb-3">
-                    &quot;Ho generato 5 contratti in una settimana per diversi clienti. Prima avrei speso minimo €2.500 dal mio avvocato. Con easycontracts ho pagato €19. Il risparmio è pazzesco e la qualità è ottima. Lo consiglio a tutti i freelancer.&quot;
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong className="text-gray-700">Marco R.</strong> • Web Developer • Verificato su Trustpilot
-                  </p>
-                </div>
-                <div className="border-l-4 border-primary-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
-                  <div className="flex space-x-1 mb-2">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className="text-yellow-400">★</span>
-                    ))}
-                  </div>
-                  <p className="text-gray-800 mb-3">
-                    &quot;La cosa migliore è che l&apos;AI spiega ogni clausola in italiano comprensibile. Non mi sono mai sentita così sicura di firmare un contratto senza l&apos;avvocato. Ottimo prodotto per startup che devono muoversi velocemente.&quot;
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong className="text-gray-700">Laura B.</strong> • CEO @ TechFlow • Verificato su Trustpilot
-                  </p>
-                </div>
-                <div className="border-l-4 border-primary-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
-                  <div className="flex space-x-1 mb-2">
-                    {[...Array(4)].map((_, i) => (
-                      <span key={i} className="text-yellow-400">★</span>
-                    ))}
-                    <span className="text-gray-300">★</span>
-                  </div>
-                  <p className="text-gray-800 mb-3">
-                    &quot;Uso easycontracts da 3 mesi. Ho fatto NDA, contratti freelance, e termini e condizioni per il mio e-commerce. Funziona bene, anche se per cose molto complesse consiglio comunque una revisione legale. Ma per il 90% dei casi è perfetto.&quot;
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    <strong className="text-gray-700">Alessandro M.</strong> • Consulente Marketing • Verificato su Trustpilot
-                  </p>
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <a href="https://www.trustpilot.com" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 font-semibold inline-flex items-center">
-                  Leggi altre 247 recensioni su Trustpilot →
-                </a>
               </div>
             </div>
+
+            {/* Speed */}
+            <div className="relative group rounded-3xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-white/10 p-6 overflow-hidden hover:border-cyan-500/50 transition-all">
+              <Zap className="w-10 h-10 text-cyan-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">30 Secondi</h3>
+              <p className="text-gray-400 text-sm">Compili → AI genera → Scarichi. Fine.</p>
+            </div>
+
+            {/* AI */}
+            <div className="relative group rounded-3xl bg-gradient-to-br from-emerald-600/20 to-green-600/20 border border-white/10 p-6 overflow-hidden hover:border-emerald-500/50 transition-all">
+              <Bot className="w-10 h-10 text-emerald-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">AI Avanzata</h3>
+              <p className="text-gray-400 text-sm">Perplexity AI con training specifico</p>
+                  </div>
+
+            {/* Stats - Clienti */}
+            <div className="md:col-span-2 relative group rounded-3xl bg-white/5 border border-white/10 p-6 overflow-hidden">
+              <div className="grid grid-cols-4 gap-4 h-full items-center">
+                <div className="text-center">
+                  <p className="text-3xl font-black text-violet-400">1.200+</p>
+                  <p className="text-gray-500 text-xs">Clienti attivi</p>
+                </div>
+                <div className="text-center border-l border-white/10">
+                  <p className="text-3xl font-black text-cyan-400">8.500+</p>
+                  <p className="text-gray-500 text-xs">Contratti generati</p>
+                  </div>
+                <div className="text-center border-l border-white/10">
+                  <p className="text-3xl font-black text-emerald-400">500+</p>
+                  <p className="text-gray-500 text-xs">Template AI</p>
+                </div>
+                <div className="text-center border-l border-white/10">
+                  <p className="text-3xl font-black text-amber-400">24/7</p>
+                  <p className="text-gray-500 text-xs">Disponibile</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Updated */}
+            <div className="relative group rounded-3xl bg-gradient-to-br from-fuchsia-600/20 to-pink-600/20 border border-white/10 p-6 overflow-hidden hover:border-fuchsia-500/50 transition-all">
+              <RefreshCw className="w-10 h-10 text-fuchsia-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">2026</h3>
+              <p className="text-gray-400 text-sm">Normative aggiornate</p>
+              </div>
+
+            {/* PDF */}
+            <div className="relative group rounded-3xl bg-gradient-to-br from-amber-600/20 to-orange-600/20 border border-white/10 p-6 overflow-hidden hover:border-amber-500/50 transition-all">
+              <Download className="w-10 h-10 text-amber-400 mb-4" />
+              <h3 className="text-xl font-bold mb-2">PDF Pronto</h3>
+              <p className="text-gray-400 text-sm">Scarica, stampa, firma.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORIE */}
+      <section className="py-32 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mb-16">
+            <div>
+              <h2 className="text-4xl md:text-6xl font-black mb-4">
+                I Nostri Template
+              </h2>
+              <p className="text-gray-400 text-xl max-w-xl">
+                500+ contratti per ogni esigenza. Freelance, business, immobiliare e altro.
+              </p>
+            </div>
+            <Link 
+              href="/generate" 
+              className="mt-6 lg:mt-0 inline-flex items-center gap-2 text-violet-400 hover:text-violet-300 font-semibold"
+            >
+              Vedi Tutti
+              <ArrowUpRight className="w-5 h-5" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: <Briefcase className="w-8 h-8" />, name: "Freelance", count: 12, color: "violet" },
+              { icon: <Building2 className="w-8 h-8" />, name: "Business", count: 15, color: "cyan" },
+              { icon: <Home className="w-8 h-8" />, name: "Immobiliare", count: 8, color: "emerald" },
+              { icon: <Lock className="w-8 h-8" />, name: "NDA", count: 6, color: "fuchsia" },
+              { icon: <Users className="w-8 h-8" />, name: "HR", count: 10, color: "amber" },
+              { icon: <Code className="w-8 h-8" />, name: "Tech", count: 8, color: "blue" },
+              { icon: <Handshake className="w-8 h-8" />, name: "Partnership", count: 5, color: "rose" },
+              { icon: <FileText className="w-8 h-8" />, name: "Altri", count: 12, color: "gray" },
+            ].map((cat, index) => (
+              <Link 
+                key={index}
+                href={`/generate?category=${cat.name.toLowerCase()}`}
+                className="group p-6 rounded-3xl bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 transition-all"
+              >
+                <div className={`w-14 h-14 rounded-2xl bg-${cat.color}-500/20 flex items-center justify-center mb-4 text-${cat.color}-400 group-hover:scale-110 transition-transform`}>
+                  {cat.icon}
+          </div>
+                <h3 className="font-bold text-lg mb-1">{cat.name}</h3>
+                <p className="text-gray-500 text-sm">{cat.count} template</p>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
       {/* PRICING */}
-      <section id="prezzi" className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">Prezzi Onesti. Senza Sorprese.</h2>
-            <p className="section-subtitle text-gray-600">Scegli il piano perfetto per te</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <PricingCard
-              plan="free"
-              name="Free"
-              price={0}
-              period="/sempre"
-              features={["1 contratto gratis", "Template base (4 contratti)", "Watermark"]}
-            />
-
-            <PricingCard
-              plan="pro"
-              name="Pro"
-              price={19}
-              period="/mese"
-              popular
-              priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO}
-              features={[
-                "10 contratti/mese",
-                "Tutti i template (50+)",
-                "Export PDF professionale",
-                "Supporto email",
-              ]}
-            />
-
-            <PricingCard
-              plan="business"
-              name="Business"
-              price={49}
-              period="/mese"
-              priceId={process.env.NEXT_PUBLIC_STRIPE_PRICE_BUSINESS}
-              features={[
-                "Contratti illimitati",
-                "Nessun watermark",
-                "Team (5 membri)",
-                "API access",
-                "Supporto prioritario",
-              ]}
-            />
-          </div>
-
-          <div className="mt-12 text-center">
-            <p className="text-gray-600">
-              💡 <strong>Risparmio medio:</strong> Un utente Pro risparmia €3.000+ all&apos;anno in costi legali
+      <section id="prezzi" className="py-32 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-950/20 via-transparent to-violet-950/20"></div>
+        
+        <div className="max-w-6xl mx-auto relative">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-black mb-6">
+              Prezzi Semplici
+            </h2>
+            <p className="text-gray-400 text-xl">
+              Niente sorprese. Cancella quando vuoi.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* CONFRONTO: NOI VS AVVOCATI */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">easycontracts vs Avvocato Tradizionale</h2>
-            <p className="section-subtitle text-gray-600">Il confronto che non lascia dubbi</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Avvocato Tradizionale */}
-            <div className="card p-8 border-2 border-red-200 bg-red-50">
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-3">👨‍⚖️</div>
-                <h3 className="text-2xl font-bold text-gray-900">Avvocato Tradizionale</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Free */}
+            <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-white/30 transition-all">
+              <h3 className="text-2xl font-bold mb-2">Free</h3>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-5xl font-black">€0</span>
+                <span className="text-gray-500">/sempre</span>
               </div>
-              <ul className="space-y-3">
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">€300-800 per ogni contratto</span>
+              <ul className="space-y-4 mb-8">
+                {["1 contratto gratis", "4 template base", "Watermark"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-300">
+                    <CheckCircle className="w-5 h-5 text-gray-500" />
+                    {f}
                 </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">Attesa 3-7 giorni (o più)</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">Orari ufficio limitati</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">Linguaggio tecnico incomprensibile</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">Modifiche extra? Altri €200</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-red-500 text-xl">❌</span>
-                  <span className="text-gray-700">Nessuno storico digitale organizzato</span>
-                </li>
+                ))}
               </ul>
-              <div className="mt-6 p-4 bg-red-100 rounded-lg text-center">
-                <p className="text-2xl font-bold text-red-900">~€3.000/anno</p>
-                <p className="text-sm text-red-700">Per 3-5 contratti</p>
-              </div>
+              <Link href="/generate" className="block w-full py-4 rounded-2xl border border-white/20 text-center font-semibold hover:bg-white/5 transition-all">
+                Inizia Gratis
+              </Link>
             </div>
 
-            {/* easycontracts */}
-            <div className="card p-8 border-4 border-primary-500 bg-primary-50 relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary-500 text-white px-6 py-2 rounded-full font-bold text-sm">
-                ⚡ MEGLIO
+            {/* Pro */}
+            <div className="relative p-8 rounded-3xl bg-gradient-to-b from-violet-600/20 to-violet-600/5 border-2 border-violet-500/50 hover:border-violet-400 transition-all scale-105">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 rounded-full text-sm font-bold">
+                Consigliato
               </div>
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-3">🤖</div>
-                <h3 className="text-2xl font-bold text-gray-900">easycontracts AI</h3>
+              <h3 className="text-2xl font-bold mb-2">Pro</h3>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-5xl font-black">€19</span>
+                <span className="text-gray-500">/mese</span>
               </div>
-              <ul className="space-y-3">
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">€49/mese illimitati</span>
+              <ul className="space-y-4 mb-8">
+                {["10 contratti/mese", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto email"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-violet-400" />
+                    {f}
                 </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">Pronto in 30 secondi</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">Disponibile 24/7</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">AI spiega tutto in italiano semplice</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">Modifiche illimitate incluse</span>
-                </li>
-                <li className="flex items-start space-x-3">
-                  <span className="text-primary-600 text-xl">✅</span>
-                  <span className="text-gray-700 font-semibold">Dashboard cloud con storico completo</span>
-                </li>
+                ))}
               </ul>
-              <div className="mt-6 p-4 bg-primary-600 text-white rounded-lg text-center">
-                <p className="text-2xl font-bold">€588/anno</p>
-                <p className="text-sm text-primary-100">Piano Business - Contratti illimitati</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12 text-center card p-8 bg-primary-900 text-white">
-            <p className="text-3xl font-bold mb-2">Risparmio: €2.412/anno</p>
-            <p className="text-primary-200">E questo con contratti illimitati. Con 10, 20, 50 contratti il risparmio è enorme!</p>
-          </div>
-        </div>
-      </section>
-
-      {/* TRUST & SECURITY */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <Shield className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-            <h2 className="section-title text-gray-900">Sicurezza e Affidabilità</h2>
-            <p className="section-subtitle text-gray-600">I tuoi dati sono al sicuro con noi</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="card text-center p-6">
-              <div className="text-4xl mb-4">🔒</div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Crittografia SSL</h3>
-              <p className="text-gray-600">Tutti i dati sono crittografati con standard bancari</p>
+              <Link href="/generate" className="block w-full py-4 rounded-2xl bg-violet-500 text-center font-bold hover:bg-violet-400 transition-all">
+                Scegli Pro
+              </Link>
             </div>
 
-            <div className="card text-center p-6">
-              <div className="text-4xl mb-4">🇪🇺</div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">GDPR Compliant</h3>
-              <p className="text-gray-600">Piena conformità al regolamento europeo privacy</p>
+            {/* Business */}
+            <div className="relative p-8 rounded-3xl bg-white/5 border border-white/10 hover:border-white/30 transition-all">
+              <h3 className="text-2xl font-bold mb-2">Business</h3>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-5xl font-black">€49</span>
+                <span className="text-gray-500">/mese</span>
             </div>
-
-            <div className="card text-center p-6">
-              <div className="text-4xl mb-4">☁️</div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">Backup Automatici</h3>
-              <p className="text-gray-600">I tuoi contratti sono sempre al sicuro</p>
+              <ul className="space-y-4 mb-8">
+                {["Contratti illimitati", "Tutti i 500+ template", "Nessun watermark", "PDF professionale", "Supporto email"].map((f, i) => (
+                  <li key={i} className="flex items-center gap-3 text-gray-300">
+                    <CheckCircle className="w-5 h-5 text-gray-500" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/generate" className="block w-full py-4 rounded-2xl border border-white/20 text-center font-semibold hover:bg-white/5 transition-all">
+                Scegli Business
+              </Link>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* FAQ */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-32 px-4">
+        <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="section-title text-gray-900">Domande Frequenti</h2>
-            <p className="section-subtitle text-gray-600">Tutto quello che devi sapere</p>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              Domande Frequenti
+            </h2>
+            <p className="text-gray-500">Aggiornato Gennaio 2026</p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {[
               {
+                q: "Come funziona la generazione dei contratti?", 
+                a: "È semplice: 1) Scegli il tipo di contratto tra i 500+ template disponibili. 2) Compili un form guidato con i dati delle parti, oggetto, compenso e clausole. 3) L'AI elabora i dati e genera un contratto personalizzato. 4) Scarichi il PDF pronto per la firma. Tutto in circa 30 secondi." 
+              },
+              {
                 q: "I contratti generati sono legalmente validi?",
-                a: "Sì, i contratti sono basati sulla legge italiana e validati da avvocati professionisti. Tuttavia, per situazioni complesse, consigliamo sempre una revisione legale.",
+                a: "I contratti seguono la struttura e il linguaggio legale italiano, con riferimenti alle normative 2026 vigenti. Tuttavia, easycontracts è un servizio di generazione AI, non uno studio legale. Per contratti di alto valore o situazioni particolarmente complesse, consigliamo di far revisionare il documento da un professionista." 
               },
               {
                 q: "Posso modificare il contratto dopo la generazione?",
-                a: "Assolutamente sì! Puoi modificare qualsiasi parte del contratto prima di scaricarlo. Con il piano Pro puoi anche chiedere all'AI di rigenerare sezioni specifiche.",
+                a: "Assolutamente sì. Il contratto generato è un documento di testo che puoi modificare liberamente. Puoi aggiungere clausole, cambiare termini, o adattarlo alle tue esigenze specifiche prima di stamparlo e firmarlo." 
               },
               {
-                q: "Quanto è sicuro inserire i miei dati?",
-                a: "Molto sicuro. Utilizziamo crittografia SSL, siamo GDPR compliant e i tuoi dati sono protetti con standard bancari. Non vendiamo mai i tuoi dati a terze parti.",
+                q: "Quanto tempo ci vuole per generare un contratto?", 
+                a: "In media 30 secondi dal completamento del form al PDF pronto. Il tempo può variare leggermente in base alla complessità del contratto e al carico dei server." 
               },
               {
-                q: "Posso cancellare l'abbonamento quando voglio?",
-                a: "Sì, puoi cancellare in qualsiasi momento dalle impostazioni. Non ci sono vincoli o penali. L'abbonamento rimane attivo fino alla fine del periodo pagato.",
+                q: "Quali tipi di contratti posso generare?", 
+                a: "Abbiamo 500+ template che coprono: contratti freelance, NDA, contratti di lavoro, affitto, compravendita, partnership, consulenza, servizi, sviluppo software, social media management, e molti altri. Ogni categoria ha template specifici per diverse situazioni." 
               },
               {
-                q: "Cosa succede se ho bisogno di un avvocato per un contratto complesso?",
-                a: "Offriamo un servizio di revisione legale a €49 per contratto (solo piano Business). Un avvocato professionista revisionerà il contratto generato dall'AI.",
+                q: "Come funziona l'abbonamento?", 
+                a: "Offriamo 3 piani: Free (1 contratto gratis con watermark), Pro (€19/mese per 10 contratti senza watermark), Business (€49/mese per contratti illimitati). Puoi cancellare in qualsiasi momento dalle impostazioni, senza vincoli." 
               },
               {
-                q: "Funziona per contratti internazionali?",
-                a: "Attualmente i contratti sono ottimizzati per la legge italiana. Stiamo lavorando per aggiungere UK law, German law e altre legislazioni europee.",
+                q: "Che tecnologia AI utilizzate?", 
+                a: "Utilizziamo Perplexity AI con il modello Llama 3.1, addestrato specificamente per la generazione di documenti legali italiani. L'AI ha accesso al nostro database di 500+ template e alle normative italiane aggiornate al 2026." 
+              },
+              {
+                q: "I miei dati sono al sicuro?", 
+                a: "Sì. I dati inseriti nei form vengono utilizzati solo per generare il contratto e non vengono condivisi con terze parti. Utilizziamo connessioni crittografate HTTPS e seguiamo le normative GDPR per la protezione dei dati." 
+              },
+              {
+                q: "Posso usare easycontracts per la mia azienda?", 
+                a: "Sì. Il piano Business (€49/mese) ti dà contratti illimitati, perfetto se la tua azienda genera molti documenti. Per esigenze particolari contattaci." 
+              },
+              {
+                q: "Cosa succede se ho un problema con un contratto?", 
+                a: "Il nostro supporto è disponibile via email per tutti i piani a pagamento. Per il piano Business offriamo supporto prioritario. Ricorda che forniamo un servizio di generazione documenti, non consulenza legale." 
               },
             ].map((faq, index) => (
-              <div key={index} className="card p-6 hover:shadow-xl transition-shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-2">❓ {faq.q}</h3>
-                <p className="text-gray-600">{faq.a}</p>
+              <div 
+                key={index}
+                className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden"
+              >
+                <button
+                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
+                  className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+                >
+                  <span className="font-semibold text-lg">{faq.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${openFaq === index ? "rotate-180" : ""}`} />
+                </button>
+                {openFaq === index && (
+                  <div className="px-6 pb-5 text-gray-400">
+                    {faq.a}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -622,22 +554,28 @@ export default function HomePage() {
       </section>
 
       {/* CTA FINALE */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-600 to-primary-700 text-white">
+      <section className="py-32 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
-            Pronto a Smettere di Pagare €800 per un Contratto?
+          <div className="relative p-16 rounded-[3rem] bg-gradient-to-br from-violet-600/30 via-fuchsia-600/20 to-indigo-600/30 border border-white/10 overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-violet-500/20 rounded-full blur-[100px]"></div>
+            
+            <div className="relative z-10">
+              <h2 className="text-4xl md:text-6xl font-black mb-6">
+                Prova Gratis
           </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Unisciti a 10.000+ freelancer e aziende che hanno già fatto il salto.
+              <p className="text-xl text-gray-300 mb-10 max-w-xl mx-auto">
+                1 contratto gratuito. Nessuna carta richiesta.
+                <br />Vedi tu stesso come funziona.
           </p>
           <Link
             href="/generate"
-            className="bg-white text-primary-600 px-12 py-5 rounded-xl font-bold text-lg hover:bg-gray-100 inline-flex items-center group shadow-2xl"
+                className="inline-flex items-center gap-3 px-10 py-5 bg-white text-black font-bold text-lg rounded-2xl hover:bg-gray-100 transition-all hover:scale-105"
           >
-            Genera il Tuo Primo Contratto Gratis
-            <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                Genera il Tuo Primo Contratto
+                <ArrowRight className="w-6 h-6" />
           </Link>
-          <p className="mt-6 text-primary-200 text-sm">Nessuna carta di credito richiesta • 1 contratto gratis</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -645,4 +583,3 @@ export default function HomePage() {
     </div>
   );
 }
-

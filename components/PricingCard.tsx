@@ -1,10 +1,8 @@
 "use client";
 
-import { CheckCircle, Crown } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
+import { CheckCircle } from "lucide-react";
 import { useState } from "react";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
+import Link from "next/link";
 
 interface PricingCardProps {
   plan: "free" | "pro" | "business";
@@ -34,20 +32,17 @@ export default function PricingCard({
     }
 
     if (!priceId) {
-      alert("Stripe non ancora configurato. Controlla .env.local");
+      alert("Stripe non configurato. Controlla le variabili d'ambiente.");
       return;
     }
 
-    // Chiedi email all'utente
-    const email = prompt("Inserisci la tua email per continuare:");
+    const email = prompt("Inserisci la tua email:");
     if (!email || !email.includes("@")) {
       alert("Email non valida!");
       return;
     }
 
-    // Salva email in localStorage per auto-login dopo pagamento
     localStorage.setItem("checkout_email", email);
-
     setLoading(true);
 
     try {
@@ -57,14 +52,15 @@ export default function PricingCard({
         body: JSON.stringify({ priceId, email }),
       });
 
-      const { url } = await response.json();
-
-      if (url) {
-        window.location.href = url;
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || "Errore checkout");
       }
-    } catch (error) {
-      console.error("Errore checkout:", error);
-      alert("Errore durante il checkout. Riprova.");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.message);
       localStorage.removeItem("checkout_email");
     } finally {
       setLoading(false);
@@ -72,34 +68,28 @@ export default function PricingCard({
   };
 
   return (
-    <div
-      className={`card hover:shadow-2xl transition-all ${
-        popular ? "border-4 border-primary-500 relative" : ""
-      }`}
-    >
+    <div className={`relative p-8 rounded-3xl ${
+      popular 
+        ? "bg-gradient-to-b from-violet-600/20 to-violet-600/5 border-2 border-violet-500/50 scale-105" 
+        : "bg-white/5 border border-white/10"
+    }`}>
       {popular && (
-        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-          🔥 Più Popolare
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 rounded-full text-sm font-bold text-white">
+          Più Popolare
         </div>
       )}
 
-      <h3 className="text-2xl font-bold mb-2 text-gray-900">{name}</h3>
-      <div className="mb-6">
-        <span
-          className={`text-5xl font-bold ${
-            popular ? "text-primary-600" : "text-gray-900"
-          }`}
-        >
-          €{price}
-        </span>
-        <span className="text-gray-600">{period}</span>
+      <h3 className="text-2xl font-bold text-white mb-2">{name}</h3>
+      <div className="flex items-baseline gap-1 mb-6">
+        <span className="text-5xl font-black text-white">€{price}</span>
+        <span className="text-gray-500">{period}</span>
       </div>
 
-      <ul className="space-y-3 mb-8">
+      <ul className="space-y-4 mb-8">
         {features.map((feature, index) => (
-          <li key={index} className="flex items-center space-x-2">
-            <CheckCircle className="w-5 h-5 text-primary-500 flex-shrink-0" />
-            <span className={index === 0 ? "font-semibold" : ""}>{feature}</span>
+          <li key={index} className="flex items-center gap-3">
+            <CheckCircle className={`w-5 h-5 ${popular ? "text-violet-400" : "text-gray-500"}`} />
+            <span className={popular ? "text-white" : "text-gray-400"}>{feature}</span>
           </li>
         ))}
       </ul>
@@ -107,19 +97,14 @@ export default function PricingCard({
       <button
         onClick={handleCheckout}
         disabled={loading}
-        className={`w-full text-center block ${
-          popular ? "btn-primary" : plan === "free" ? "btn-outline" : "btn-secondary"
+        className={`w-full py-4 rounded-2xl font-semibold transition-all ${
+          popular 
+            ? "bg-violet-500 text-white hover:bg-violet-400" 
+            : "border border-white/20 text-white hover:bg-white/5"
         } ${loading ? "opacity-50 cursor-wait" : ""}`}
       >
-        {loading ? "Caricamento..." : plan === "free" ? "Inizia Gratis" : `Inizia ${name}`}
+        {loading ? "Caricamento..." : plan === "free" ? "Inizia Gratis" : `Scegli ${name}`}
       </button>
-
-      {popular && (
-        <p className="text-center text-sm text-gray-500 mt-3">
-          💡 Più scelto dai freelancer
-        </p>
-      )}
     </div>
   );
 }
-
