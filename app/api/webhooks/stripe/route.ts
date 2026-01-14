@@ -145,37 +145,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // Salva subscription nel database
   if (subscriptionId && stripe) {
-    const subResponse = await stripe.subscriptions.retrieve(subscriptionId);
-    const sub = subResponse as Stripe.Subscription;
+    const sub = await stripe.subscriptions.retrieve(subscriptionId) as any;
     
     await prisma.subscription.upsert({
       where: { stripeSubscriptionId: subscriptionId },
       update: {
         plan,
         status: "ACTIVE",
-        currentPeriodStart: new Date(sub.current_period_start * 1000),
-        currentPeriodEnd: new Date(sub.current_period_end * 1000),
-        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        currentPeriodStart: new Date((sub.current_period_start || Date.now() / 1000) * 1000),
+        currentPeriodEnd: new Date((sub.current_period_end || Date.now() / 1000) * 1000),
+        cancelAtPeriodEnd: sub.cancel_at_period_end || false,
       },
       create: {
         userId: user.id,
         stripeSubscriptionId: subscriptionId,
-        stripePriceId: sub.items.data[0]?.price.id || "",
-        stripeProductId: sub.items.data[0]?.price.product as string || "",
+        stripePriceId: sub.items?.data?.[0]?.price?.id || "",
+        stripeProductId: (sub.items?.data?.[0]?.price?.product as string) || "",
         plan,
         status: "ACTIVE",
-        currentPeriodStart: new Date(sub.current_period_start * 1000),
-        currentPeriodEnd: new Date(sub.current_period_end * 1000),
-        cancelAtPeriodEnd: sub.cancel_at_period_end,
+        currentPeriodStart: new Date((sub.current_period_start || Date.now() / 1000) * 1000),
+        currentPeriodEnd: new Date((sub.current_period_end || Date.now() / 1000) * 1000),
+        cancelAtPeriodEnd: sub.cancel_at_period_end || false,
       },
     });
   }
 }
 
 // Subscription aggiornata
-async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdate(subscription: any) {
   const customerId = subscription.customer as string;
-  const priceId = subscription.items.data[0]?.price.id;
+  const priceId = subscription.items?.data?.[0]?.price?.id;
 
   // Trova utente
   const user = await prisma.user.findFirst({
@@ -211,20 +210,20 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
     update: {
       plan,
       status: subscription.status === "active" ? "ACTIVE" : "PAST_DUE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: new Date((subscription.current_period_start || Date.now() / 1000) * 1000),
+      currentPeriodEnd: new Date((subscription.current_period_end || Date.now() / 1000) * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
     },
     create: {
       userId: user.id,
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId || "",
-      stripeProductId: subscription.items.data[0]?.price.product as string || "",
+      stripeProductId: (subscription.items?.data?.[0]?.price?.product as string) || "",
       plan,
       status: "ACTIVE",
-      currentPeriodStart: new Date(subscription.current_period_start * 1000),
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: new Date((subscription.current_period_start || Date.now() / 1000) * 1000),
+      currentPeriodEnd: new Date((subscription.current_period_end || Date.now() / 1000) * 1000),
+      cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
     },
   });
 
@@ -232,7 +231,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 }
 
 // Subscription cancellata
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeleted(subscription: any) {
   const customerId = subscription.customer as string;
 
   const user = await prisma.user.findFirst({
