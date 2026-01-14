@@ -17,7 +17,7 @@ export async function DELETE(
       where: { userId },
     });
 
-    // Elimina le subscriptions
+    // Elimina la subscription
     await prisma.subscription.deleteMany({
       where: { userId },
     });
@@ -49,7 +49,7 @@ export async function GET(
       where: { id: userId },
       include: {
         contracts: true,
-        subscriptions: true,
+        subscription: true,
       },
     });
 
