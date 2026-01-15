@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Disabilita cache
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET - Ottieni dati utente corrente
 export async function GET(req: NextRequest) {
   try {

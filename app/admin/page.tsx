@@ -76,19 +76,10 @@ export default function AdminPage() {
   const [filterPlan, setFilterPlan] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const usersPerPage = 10;
 
   useEffect(() => {
     checkAdminAccess();
-    
-    // Auto-refresh ogni 30 secondi
-    const interval = setInterval(() => {
-      loadData();
-      setLastUpdate(new Date());
-    }, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   const checkAdminAccess = () => {
