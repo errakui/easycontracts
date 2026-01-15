@@ -68,7 +68,6 @@ export async function createCheckoutSession(
 
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
-    payment_method_types: ["card", "link"],
     line_items: [
       {
         price: priceId,
@@ -78,15 +77,7 @@ export async function createCheckoutSession(
     success_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
     cancel_url: cancelUrl || `${process.env.NEXT_PUBLIC_APP_URL}/#prezzi`,
     allow_promotion_codes: true,
-    // Non richiede indirizzo di fatturazione per Apple Pay/Google Pay
-    billing_address_collection: "auto",
     locale: "it",
-    // Configura per accettare pagamenti senza verifiche stringenti
-    payment_method_options: {
-      card: {
-        request_three_d_secure: "automatic",
-      },
-    },
   };
 
   // Se c'è un customerId esistente, usalo
