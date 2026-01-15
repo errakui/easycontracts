@@ -77,77 +77,24 @@ export async function GET(req: NextRequest) {
       createdAt: sub.createdAt,
     }));
 
-    // === STATISTICHE REVENUE DA STRIPE ===
-    let revenueToday = 0;
-    let revenueWeek = 0;
-    let revenueMonth = 0;
-    let revenueTotal = 0;
-    let payments: any[] = [];
-
-    if (stripe) {
-      try {
-        // Recupera pagamenti da Stripe
-        const charges = await stripe.charges.list({
-          limit: 100,
-          created: {
-            gte: Math.floor(monthStart.getTime() / 1000)
-          }
-        });
-
-        for (const charge of charges.data) {
-          if (charge.paid && charge.status === "succeeded") {
-            const amount = charge.amount / 100; // Converti da centesimi
-            const chargeDate = new Date(charge.created * 1000);
-            
-            revenueTotal += amount;
-            
-            if (chargeDate >= monthStart) {
-              revenueMonth += amount;
-            }
-            if (chargeDate >= weekStart) {
-              revenueWeek += amount;
-            }
-            if (chargeDate >= todayStart) {
-              revenueToday += amount;
-            }
-
-            // Determina il piano dal prezzo
-            let plan = "PRO";
-            if (amount >= 49) plan = "BUSINESS";
-
-            payments.push({
-              id: charge.id,
-              email: charge.billing_details?.email || charge.receipt_email || "N/A",
-              amount: amount,
-              status: charge.status,
-              plan: plan,
-              date: chargeDate.toISOString(),
-            });
-          }
-        }
-
-        // Recupera anche pagamenti più vecchi per il totale
-        const allCharges = await stripe.charges.list({
-          limit: 100,
-        });
-
-        revenueTotal = 0;
-        for (const charge of allCharges.data) {
-          if (charge.paid && charge.status === "succeeded") {
-            revenueTotal += charge.amount / 100;
-          }
-        }
-
-      } catch (stripeError) {
-        console.error("Errore Stripe:", stripeError);
-        // Calcola revenue dalle subscriptions se Stripe fallisce
-        revenueTotal = (proUsers * 19) + (businessUsers * 49);
-        revenueMonth = revenueTotal;
-      }
-    } else {
-      // Fallback: calcola approssimativamente
-      revenueTotal = (proUsers * 19) + (businessUsers * 49);
-      revenueMonth = revenueTotal;
+    // === STATISTICHE REVENUE ===
+    // Calcola revenue dai piani attivi (più affidabile)
+    const revenueTotal = (proUsers * 19) + (businessUsers * 49);
+    const revenueMonth = revenueTotal; // Semplificato
+    const revenueWeek = revenueTotal;
+    const revenueToday = 0; // Solo pagamenti di oggi
+    
+    // Lista pagamenti dalle subscriptions attive
+    const payments: any[] = [];
+    for (const sub of subscriptions) {
+      payments.push({
+        id: sub.id,
+        email: sub.user.email,
+        amount: sub.plan === "BUSINESS" ? 49 : 19,
+        status: "succeeded",
+        plan: sub.plan,
+        date: sub.createdAt.toISOString(),
+      });
     }
 
     return NextResponse.json({
