@@ -8,8 +8,13 @@ import Stripe from "stripe";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  console.log("=== WEBHOOK RICEVUTO ===");
+  
   const body = await req.text();
   const signature = headers().get("stripe-signature");
+
+  console.log("Signature presente:", !!signature);
+  console.log("Body length:", body.length);
 
   if (!signature) {
     console.error("Webhook: Signature mancante");
@@ -17,6 +22,9 @@ export async function POST(req: NextRequest) {
   }
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  
+  console.log("Webhook secret configurato:", !!webhookSecret);
+  console.log("Webhook secret inizia con:", webhookSecret?.substring(0, 10));
   
   if (!webhookSecret) {
     console.error("Webhook: STRIPE_WEBHOOK_SECRET non configurato");
@@ -32,8 +40,9 @@ export async function POST(req: NextRequest) {
 
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    console.log("✅ Verifica firma OK!");
   } catch (err: any) {
-    console.error("Webhook signature verification failed:", err.message);
+    console.error("❌ Webhook signature verification failed:", err.message);
     return NextResponse.json({ error: `Webhook Error: ${err.message}` }, { status: 400 });
   }
 
@@ -85,9 +94,18 @@ export async function POST(req: NextRequest) {
 
 // Checkout completato - CREA UTENTE SE NON ESISTE
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  console.log("=== HANDLE CHECKOUT COMPLETED ===");
+  console.log("Session ID:", session.id);
+  console.log("Customer email:", session.customer_email);
+  console.log("Customer details email:", session.customer_details?.email);
+  
   const email = session.customer_email || session.customer_details?.email;
   const customerId = session.customer as string;
   const subscriptionId = session.subscription as string;
+
+  console.log("Email finale:", email);
+  console.log("Customer ID:", customerId);
+  console.log("Subscription ID:", subscriptionId);
 
   if (!email) {
     console.error("Checkout completato ma email mancante");
@@ -129,18 +147,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     console.log(`Utente ${email} aggiornato a piano ${plan}`);
   } else {
     // CREA NUOVO UTENTE (pagato prima di registrarsi)
-    user = await prisma.user.create({
-      data: {
-        email,
-        name: session.customer_details?.name || email.split("@")[0],
-        plan,
-        contractsLimit,
-        contractsUsed: 0,
-        stripeCustomerId: customerId,
-        // Password temporanea - l'utente dovrà fare reset password o login con Google
-      },
-    });
-    console.log(`Nuovo utente ${email} creato con piano ${plan}`);
+    console.log("Creazione nuovo utente...");
+    try {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: session.customer_details?.name || email.split("@")[0],
+          plan,
+          contractsLimit,
+          contractsUsed: 0,
+          stripeCustomerId: customerId,
+        },
+      });
+      console.log(`✅ Nuovo utente ${email} creato con piano ${plan}`);
+    } catch (createError: any) {
+      console.error("❌ Errore creazione utente:", createError.message);
+      throw createError;
+    }
   }
 
   // Salva subscription nel database
